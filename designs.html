@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft 创意设计展示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #667eea;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 5rem auto 2rem;
+            padding: 0 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 4rem;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .designs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .design-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .design-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .design-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        .design-content {
+            padding: 1.5rem;
+        }
+
+        .design-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .design-description {
+            color: #666;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .command-section {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .command-label {
+            font-size: 0.85rem;
+            color: #999;
+            margin-bottom: 0.5rem;
+        }
+
+        .command-code {
+            background: #2d2d2d;
+            color: #f1f1f1;
+            padding: 0.75rem;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            word-break: break-all;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .command-code:hover {
+            background: #3a3a3a;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            position: relative;
+            margin: 5% auto;
+            max-width: 90%;
+            max-height: 80%;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 10px;
+        }
+
+        .close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #667eea;
+        }
+
+        .copy-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-links {
+                gap: 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .designs-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+    <a href="designs.html" class="logo">✨ Minecraft 创意工坊</a>
+    <ul class="nav-links">
+        <li><a href="designs.html">设计展示</a></li>
+        <li><a href="server.html">我的服务器</a></li>
+        <li><a href="announcements.html">公告通知</a></li>
+        <li><a href="https://www.boxim.online" target="_blank">🌐 Boxim</a></li>
+    </ul>
+</nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>Minecraft 指令创作</h1>
+            <p>探索方块世界的无限可能</p>
+        </section>
+
+        <div class="designs-grid">
+            <article class="design-card">
+                <img src="https://picsum.photos/seed/minecraft1/400/250.jpg" alt="建筑展示" class="design-image" onclick="openModal(this)">
+                <div class="design-content">
+                    <h3 class="design-title">像素艺术宫殿</h3>
+                    <p class="design-description">使用命令方块制作的16位像素艺术建筑，展现复古游戏风格与现代Minecraft的完美融合。</p>
+                    <div class="command-section">
+                        <div class="command-label">点击复制指令：</div>
+                        <div class="command-code" onclick="copyCommand(this)">
+                            /fill ~-5 ~-2 ~5 ~5 8 ~5 minecraft:wool 2 replace air
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="design-card">
+                <img src="https://picsum.photos/seed/minecraft2/400/250.jpg" alt="红石展示" class="design-image" onclick="openModal(this)">
+                <div class="design-content">
+                    <h3 class="design-title">自动农场系统</h3>
+                    <p class="design-description">高效的红石自动化农场，配合指令块实现 crops 的自动种植和收获，产量提升300%。</p>
+                    <div class="command-section">
+                        <div class="command-label">点击复制指令：</div>
+                        <div class="command-code" onclick="copyCommand(this)">
+                            /execute @e[type=villager,limit=1,name=农夫] ~~~ summon minecraft:villager ~ ~1 ~ {CustomName:"\"系统F\""}
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="design-card">
+                <img src="https://picsum.photos/seed/minecraft3/400/250.jpg" alt="地形展示" class="design-image" onclick="openModal(this)">
+                <div class="design-content">
+                    <h3 class="design-title">天界城堡遗迹</h3>
+                    <p class="design-description">在世界边界使用结构方块保存的城堡，配合地形生成指令创造出漂浮在云海之上的奇迹。</p>
+                    <div class="command-section">
+                        <div class="command-label">点击复制指令：</div>
+                        <div class="command-code" onclick="copyCommand(this)">
+                            /execute in minecraft:the_end run gamerule randomTickSpeed 0
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="design-card">
+                <img src="https://picsum.photos/seed/minecraft4/400/250.jpg" alt="游戏机制" class="design-image" onclick="openModal(this)">
+                <div class="design-content">
+                    <h3 class="design-title">超现实迷宫</h3>
+                    <p class="design-description">利用 /fill 和 /setblock 指令创建的无限循环迷宫，挑战空间感知极限。</p>
+                    <div class="command-section">
+                        <div class="command-label">点击复制指令：</div>
+                        <div class="command-code" onclick="copyCommand(this)">
+                            /setblock ~ ~-1 ~ minecraft:stone_bricks[default=false]
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </main>
+
+    <div id="imageModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <img id="modalImage" class="modal-image" src="" alt="展示图">
+        </div>
+    </div>
+
+    <div id="copyNotification" class="copy-notification">
+        指令已复制到剪贴板！
+    </div>
+
+    <script>
+        function openModal(img) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modal.style.display = 'block';
+            modalImg.src = img.src;
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal'). = 'none';
+        }
+
+        function copyCommand(element) {
+            const command = element.textContent;
+            navigator.clipboard.writeText(command).then(() => {
+                const notification = document.getElementById('copyNotification');
+                notification.style.display = 'block';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 2000);
+            });
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('imageModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
