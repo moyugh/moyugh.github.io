@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>服务器公告 - Minecraft 服务器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #667eea;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 5rem auto 2rem;
+            padding: 0 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .announcements-container {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .announcement-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .announcement-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to right, #f8f9fa, #ffffff);
+        }
+
+        .type-tag {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .type-tag.important {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .type-tag.event {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .type-tag.maintenance {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .read-more {
+            color: #667eea;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+            transition: gap 0.3s ease;
+        }
+
+        .read-more:hover {
+            gap: 0.5rem;
+        }
+
+        .announcement-details {
+            display: none;
+            padding: 0 1.5rem 1.5rem;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .announcement-details.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .sticky-notice {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: slideInRight 0.5s ease;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .notice-icon {
+            font-size: 2rem;
+            animation: bounce 2s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .filters {
+                flex-wrap: wrap;
+            }
+            
+            .filter-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="server.html" class="logo">🎮 我的服务器</a>
+            <ul class="nav-links">
+                <li><a href="designs.html">设计展示</a></li>
+                <li><a href="server.html">我的服务器</a></li>
+                <li><a href="announcements.html" class="active">公告通知</a></li>
+                <li><a href="https://www.boxim.online" target="_blank">🌐 Boxim</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>服务器公告</h1>
+            <p>及时了解服务器最新动态</p>
+        </section>
+
+        <div class="sticky-notice">
+            <span class="notice-icon">🎯</span>
+            <div>
+                <strong>重要提示：</strong> 服务器将在6:00开启，18:00关闭
+            </div>
+        </div>
+
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterAnnouncements('all')">全部</button>
+            <button class="filter-btn" onclick="filterAnnouncements('important')">重要公告</button>
+            <button class="filter-btn" onclick="filterAnnouncements('event')">活动通知</button>
+            <button class="filter-btn" onclick="filterAnnouncements('maintenance')">维护更新</button>
+            <button class="filter-btn" onclick="filterAnnouncements('news')">新闻资讯</button>
+        </div>
+
+        <div class="announcements-container">
+            <article class="announcement-card" data-type="important" onclick="toggleDetails(this)">
+                <div class="card-header">
+                    <h3 class="card-title">服务器IP地址更新通知</h3>
+                    <span class="type-tag important">重要公告</span>
+                </div>
+                <div class="card-content">
+                    <p>尊敬的玩家，服务器可能会迁移，所以请注意好公告信息</p>
+                    <a class="read-more">查看详情 →</a>
+                </div>
+                <div class="announcement-details">
+                    <h4>新服务器IP地址</h4>
+                    <p><strong>新地址：</strong> <span style="font-family: monospace; background: #f0f0f0; padding: 0.2rem 0.5rem; border-radius: 4px;">暂未迁移服务器</span></p>
+                    <p><strong>旧地址：</strong> 暂未迁移服务器</p>
+                    <h4 style="margin-top: 1rem;">更新时间</h4>
+                    <p>暂未迁移服务器</p>
+                    <h4>注意事项</h4>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>旧地址将在更新后停用</li>
+                        <li>请确保成功连接新地址</li>
+                        <li>玩家的数据将无缝迁移</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">如有问题，可通过盒子im或抖音联系管理员。</p>
+                </div>
+                <div class="card-meta">
+                    <span>📅 2025-9-1</span>
+                    <span>👤 魔芋</span>
+                </div>
+            </article>
+
+            <article class="announcement-card" data-type="news" onclick="toggleDetails(this)">
+                <div class="card-header">
+                    <h3 class="card-title">新功能投票：你想先更新什么？</h3>
+                    <span class="type-tag">新闻资讯</span>
+                </div>
+                <div class="card-content">
+                    <p>我们计划在下个版本更新中添加多个新功能，希望玩家们投票决定优先级。</p>
+                    <a class="read-more">查看详情 →</a>
+                </div>
+                <div class="announcement-details">
+                    <h4>候选功能</h4>
+                    <p><strong>实用功能</strong><br>
+                    1. 更好的物品整理系统<br>
+                    2. 自动清理过期建筑<br>
+                    3. 更方便的多人房间系统</p>
+                    <h4>投票方式</h4>
+                    <p>请前往投票专用频道，为你最期待的功能投票。</p>
+                    <h4>投票截止</h4>
+                    <p>未定</p>
+                </div>
+                <div class="card-meta">
+                    <span>📅 2025-9-1</span>
+                    <span>👤 魔芋</span>
+                </div>
+            </article>
+
+            <article class="announcement-card" data-type="important" onclick="toggleDetails(this)">
+                <div class="card-header">
+                    <h3 class="card-title">关于外挂和作弊的严肃声明</h3>
+                    <span class="type-tag important">重要公告</span>
+                </div>
+                <div class="card-content">
+                    <p>为了维护公平的游戏环境，我们对使用外挂和作弊的行为采取了更严厉的措施。</p>
+                    <a class="read-more">查看详情 →</a>
+                </div>
+                <div class="announcement-details">
+                    <h4>违规行为定义</h4>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>使用任何形式的作弊客户端</li>
+                        <li>安装并使用非法模组</li>
+                        <li>利用服务器漏洞获取不正当利益</li>
+                        <li>与其他玩家共享游戏数据</li>
+                    </ul>
+                    <h4>处罚措施</h4>
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>首次违规：永久封禁</li>
+                        <li>再次违规：永久封禁并公示</li>
+                    </ul>
+                    <h4>举报方式</h4>
+                    <p>如发现违规行为，请通过以下方式举报：<br>
+                    • 抖音私信<br>
+                    • 向管理员boxim发送截图和证据<br>
+                    • 邮箱至 moyug@outlook.com</p>
+                </div>
+                <div class="card-meta">
+                    <span>📅 2025-9-1</span>
+                    <span>👤 魔芋</span>
+                </div>
+            </article>
+        </div>
+    </main>
+
+    <script>
+        function toggleDetails(card) {
+            const details = card.querySelector('.announcement-details');
+            const isShowing = details.classList.contains('show');
+            
+            // 关闭所有其他详情
+            document.querySelectorAll('.announcement-details').forEach(detail => {
+                detail.classList.remove('show');
+            });
+            
+            // 切换当前详情
+            if (!isShowing) {
+                details.classList.add('show');
+            }
+        }
+
+        function filterAnnouncements(type) {
+            // 更新按钮状态
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 显示/隐藏对应类型的公告
+            const cards = document.querySelectorAll('.announcement-card');
+            cards.forEach(card => {
+                if (type === 'all' || card.dataset.type === type) {
+                    card.style.display = 'block';
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 10);
+                } else {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                    }, 300);
+                }
+            });
+        }
+
+        // 添加CSS过渡效果
+        document.querySelectorAll('.announcement-card').forEach(card => {
+            card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        });
+    </script>
+</body>
+</html>

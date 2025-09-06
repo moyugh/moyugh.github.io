@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的 Minecraft 服务器</title>
+    <style>
+        /* 保持原有的样式不变 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #667eea;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 5rem auto 2rem;
+            padding: 0 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .server-status {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .server-status::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .status-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #4caf50;
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .status-dot.offline {
+            background: #f44336;
+            animation: none;
+        }
+
+        .status-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .server-ip {
+            font-size: 1.2rem;
+            font-family: 'Consolas', monospace;
+            background: #f5f5f5;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+            display: inline-block;
+            cursor: copy;
+            transition: background 0.3s ease;
+        }
+
+        .server-ip:hover {
+            background: #e0e0e0;
+        }
+
+        .server-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+            color: #333;
+        }
+
+        .card-content {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .rules-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .rules-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .rules-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: #f5f5f5;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+            cursor: pointer;
+        }
+
+        .contact-item:hover {
+            background: #e8e8e8;
+        }
+
+        .copy-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .server-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+    <a href="server.html" class="logo">🎮 我的服务器</a>
+    <ul class="nav-links">
+        <li><a href="designs.html">设计展示</a></li>
+        <li><a href="server.html">我的服务器</a></li>
+        <li><a href="announcements.html">公告通知</a></li>
+        <li><a href="https://www.boxim.online" target="_blank">🌐 Boxim</a></li>
+    </ul>
+</nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>常驻 Minecraft Java 服务器</h1>
+            <p>欢迎来到我的方块世界！</p>
+        </section>
+
+        <div class="server-status">
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span class="status-text">无常驻服务器</span>
+            </div>
+            <p style="color: #666; margin: 1rem 0;">当前在线玩家：0/0</p>
+            <div class="server-ip" onclick="copyIP(this)">
+                
+            </div>
+        </div>
+
+        <div class="server-content">
+            <div class="content-card">
+                <div class="card-icon">📋</div>
+                <h3 class="card-title">服务器简介</h3>
+                <div class="card-content">
+                    <p>这是一个专注于创意和合作的服务器，提供纯净的游戏体验和丰富的建造空间。</p>
+                    <br>
+                    <p><strong>服务器特色：</strong></p>
+                    <p>• 无插件纯净环境</p>
+                    <p>• 大面积 claim 保护</p>
+                    <p>• 自定义游戏模式</p>
+                    <p>• 定期活动发布</p>
+                    <p>• 友好管理团队</p>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-icon">📜</div>
+                <h3 class="card-title">服务器规则</h3>
+                <div class="card-content">
+                    <ul class="rules-list">
+                        <li>禁止使用任何作弊客户端或模组</li>
+                        <li>禁止破坏他人建筑或在他人地皮上建造</li>
+                        <li>保持友善交流，禁止辱骂和歧视</li>
+                        <li>禁止刷屏和发送垃圾信息</li>
+                        <li>尊重他人隐私，不要无故截图录屏</li>
+                        <li>发现漏洞请立即向管理员报告</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-icon">📞</div>
+                <h3 class="card-title">联系我们</h3>
+                <div class="card-content">
+                    <div class="contact-info">
+                        <div class="contact-item" onclick="window.open('https://www.boxim.online', '_blank')">
+                            <span style="font-size: 1.5rem;">🌐</span>
+                            <div>
+                                <strong>Boxim 官网</strong>
+                                <div style="font-size: 0.9rem; color: #666;">www.boxim.online</div>
+                            </div>
+                        </div>
+                        <div class="contact-item" onclick="window.open('https://www.douyin.com', '_blank')">
+                            <span style="font-size: 1.5rem;">💬</span>
+                            <div>
+                                <strong>抖音私信</strong>
+                                <div style="font-size: 0.9rem; color: #666;">在抖音搜索“魔芋”，关注他</div>
+                            </div>
+                        </div>
+                        <div class="contact-item" onclick="window.open('https://boxim.online', '_blank')">
+                            <span style="font-size: 1.5rem;">🛟</span>
+                            <div>
+                                <strong>技术支持</strong>
+                                <div style="font-size: 0.9rem; color: #666;">遇到技术问题请联系我们</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-icon">🎁</div>
+                <h3 class="card-title">最近活动</h3>
+                <div class="card-content">
+                    <div style="margin-bottom: 1rem;">
+                        <strong>无</strong>
+                        <p style="color: #666; margin-top: 0.5rem;">主题：无</p>
+                        <p style="color: #999; font-size: 0.9rem;">截止日期：无</p>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <strong>无</strong>
+                        <p style="color: #666; margin-top: 0.5rem;">无</p>
+                        <p style="color: #999; font-size: 0.9rem;">无</p>
+                    </div>
+                    <div>
+                        <strong>无</strong>
+                        <p style="color: #666; margin-top: 0.5rem;">无</p>
+                        <p style="color: #999; font-size: 0.9rem;">无</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="copyNotification" class="copy-notification">
+        已复制到剪贴板！
+    </div>
+
+    <script>
+        function copyIP(element) {
+            const ip = element.textContent;
+            navigator.clipboard.writeText(ip).then(() => {
+                const notification = document.getElementById('copyNotification');
+                notification.style.display = 'block';
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 2000);
+            });
+        }
+
+        // 窗口打开功能
+        function openNewWindow(url) {
+            window.open(url, '_blank');
+        }
+    </script>
+</body>
+</html>
