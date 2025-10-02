@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>moyugh - 指令师</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"> -->
+    <!-- 上面的字体链接如果无法加载，可以注释掉，页面不会有大问题 -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- 导航栏 - 修正了类名以对应JS逻辑 -->
+    <header class="header">
+        <a href="#" class="logo"><i class="fa-solid fa-cube"></i> moyugh</a>
+        <nav class="navbar">
+            <a href="#home" class="nav-link active">首页</a>
+            <a href="#about" class="nav-link">关于我</a>
+            <a href="#redstone" class="nav-link">指令作品</a>
+            <a href="#servers" class="nav-link">我的服务器</a>
+            <a href="#contact" class="nav-link">联系我</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- 首页介绍 -->
+        <section id="home" class="home">
+            <div class="home-content">
+                <h1>你好，我是 <span>moyugh</span></h1>
+                <h3>我是一名热衷于 <span>指令</span> 的玩家</h3>
+                <p>喜欢用指令做好玩或者好用的作品</p>
+                <div class="btn-box">
+                    <a href="#about" class="btn">了解更多</a>
+                    <a href="#servers" class="btn">来我的服务器玩</a>
+                </div>
+        </section>
+
+        <!-- 关于我 -->
+        <section id="about" class="about">
+            <h2 class="heading">关于 <span>我</span></h2>
+            <div class="about-content">
+                <div class="about-img">
+                    <!-- <img src="1751531537703.png" alt="我的Minecraft头像"> -->
+                    <p>moyugh</p>
+                </div>
+                <div class="about-text">
+                    <h2>指令师 & 服务器管理员</h2>
+                    <p>你好！我是moyugh，一名沉迷于指令奥秘的玩家。从简单的give到复杂生物、物品我都有尝试.</p>
+                    <div class="btn-box">
+                        <a href="#" class="btn">加入我的盒子im群聊</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 红石作品 -->
+        <section id="redstone" class="redstone">
+            <h2 class="heading">我的 <span>指令作品</span></h2>
+            <div class="skills-container"> <!-- 复用了 skills-container 的样式，逻辑更清晰 -->
+                <div class="skills-box">
+                    <i class="fa-solid fa-microchip"></i>
+                    <h3>抽奖机</h3>
+                    <p>好玩不上瘾的抽奖机</p>
+                </div>
+                <div class="skills-box">
+                    <i class="fa-solid fa-users-gear"></i>
+                    <h3>boss</h3>
+                    <p>一个完全由指令构成的boss</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 我的服务器 -->
+        <section id="servers" class="servers">
+            <h2 class="heading">欢迎来到我的 <span>服务器</span></h2>
+            <div class="projects-container"> <!-- 复用了项目卡片的容器样式 -->
+                <div class="project-box">
+                    <img src="https://via.placeholder.com/500x300/ff9933/333333?text=你的服务器截图2" alt="生存服务器展示">
+                    <div class="project-info">
+                        <h3>生存领地 (Survival Realms)</h3>
+                        <p>体验原汁原味的生存乐趣，但不再是孤单一人！我们提供友好的社区...</p>
+                        <a href="#" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square"></i> 加入服务器</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 联系我 (页脚) -->
+    <footer id="contact">
+        <div class="footer-content">
+            <h2 class="logo"><i class="fa-solid fa-cube"></i> 你的moyugh</h2>
+            <p>欢迎来我的服务器玩，或者在盒子im一起聊方块！</p>
+            <div class="footer-socials">
+                <a href="https://www.boxim.online" target="_blank"><i class="fa-brands fa-discord"></i> 盒子im</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 moyugh. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
