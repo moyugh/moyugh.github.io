@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026元旦祝福 - 新年快乐</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .blessing-text {
+                font-size: 2.5rem;
+            }
+            
+            .year-display {
+                font-size: 4rem;
+            }
+            
+            h1 {
+                font-size: 2.5rem;
+            }
+            
+            .countdown {
+                gap: 1rem;
+            }
+            
+            .countdown-item {
+                min-width: 80px;
+                padding: 1rem;
+            }
+            
+            .countdown-number {
+                font-size: 2rem;
+            }
+            
+            .wishes-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .games-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .game-container {
+                width: 95%;
+                height: 90%;
+            }
+            
+            .memory-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .memory-card {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .puzzle-container {
+                grid-template-columns: repeat(3, 80px);
+                grid-template-rows: repeat(3, 80px);
+            }
+            
+            .puzzle-piece {
+                width: 80px;
+                height: 80px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .games-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .memory-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .memory-card {
+                width: 60px;
+                height: 60px;
+            }
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #8B0000 0%, #DC143C 50%, #FF6347 100%);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+        
+        /* 开场特效样式 */
+        .opening-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #0a0e27 0%, #1a1a3e 50%, #16213e 100%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 2s ease-out;
+        }
+        
+        .opening-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .blessing-text {
+            font-size: 3.5rem;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: fadeInUp 2s ease-out forwards;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+            font-weight: bold;
+        }
+        
+        .year-display {
+            font-size: 6rem;
+            color: #ff6b6b;
+            font-weight: bold;
+            opacity: 0;
+            animation: scaleIn 1.5s ease-out 0.5s forwards;
+            text-shadow: 0 0 30px rgba(255, 107, 107, 0.8);
+            margin-bottom: 2rem;
+        }
+        
+        .fireworks-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        /* 主页面样式 */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            opacity: 0;
+            transition: opacity 2s ease-in;
+        }
+        
+        .main-container.visible {
+            opacity: 1;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 3.5rem;
+            color: #fff;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #ff6b6b, transparent);
+        }
+        
+        .countdown-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .countdown-title {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 1.5rem;
+        }
+        
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .countdown-item {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 1.5rem;
+            min-width: 100px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .countdown-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .countdown-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ff6b6b;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .countdown-label {
+            font-size: 1rem;
+            color: #fff;
+        }
+        
+        .blessing-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .blessing-title {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 1.5rem;
+        }
+        
+        .blessing-content {
+            font-size: 1.2rem;
+            color: #fff;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+        
+        .wishes-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .wish-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .wish-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .wish-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .wish-text {
+            color: #fff;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        .games-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .games-title {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .games-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .game-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .game-card:hover::before {
+            left: 100%;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .game-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .game-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .game-description {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.4;
+        }
+        
+        .floating-lanterns {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .lantern {
+            position: absolute;
+            width: 40px;
+            height: 50px;
+            background: radial-gradient(circle, #ff6b6b, #ff8e53);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            opacity: 0.8;
+            animation: float 15s infinite ease-in-out;
+        }
+        
+        .lantern::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 10px;
+            background: #ff8e53;
+            border-radius: 50%;
+        }
+        
+        .lantern::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 20px;
+            background: #ff8e53;
+        }
+        
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: transform 0.3s ease, background 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .music-control:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .music-icon {
+            font-size: 1.5rem;
+            color: #fff;
+        }
+        
+        .click-effect {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 107, 107, 0.8), transparent);
+            animation: clickRipple 0.6s ease-out;
+        }
+        
+        /* 动画定义 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(100vh) translateX(0) rotate(-5deg);
+            }
+            25% {
+                transform: translateY(75vh) translateX(20px) rotate(5deg);
+            }
+            50% {
+                transform: translateY(50vh) translateX(-20px) rotate(-3deg);
+            }
+            75% {
+                transform: translateY(25vh) translateX(10px) rotate(3deg);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes clickRipple {
+            from {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+            to {
+                width: 100px;
+                height: 100px;
+                opacity: 0;
+            }
+        }
+        
+        /* 游戏页面样式 */
+        .game-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .game-container {
+            background: linear-gradient(135deg, #8B0000 0%, #DC143C 50%, #FF6347 100%);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 900px;
+            height: 80%;
+            max-height: 700px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+        
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .game-title {
+            color: #fff;
+            font-size: 1.8rem;
+            margin: 0;
+        }
+        
+        .close-button {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+        
+        .close-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .game-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* 记忆翻牌游戏样式 */
+        .memory-game {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .memory-card {
+            width: 80px;
+            height: 80px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+        
+        .memory-card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            font-size: 2rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card-front {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            color: white;
+        }
+        
+        .card-back {
+            background: rgba(255, 255, 255, 0.9);
+            transform: rotateY(180deg);
+        }
+        
+        .memory-card.matched .card-inner {
+            transform: rotateY(180deg);
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+        }
+        
+        /* 拼图游戏样式 */
+        .puzzle-game {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .puzzle-container {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 2px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
+        
+        .puzzle-piece {
+            width: 100px;
+            height: 100px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .puzzle-piece:hover {
+            transform: scale(1.05);
+        }
+        
+        .puzzle-piece.empty {
+            background: transparent !important;
+            border: 2px dashed rgba(255, 255, 255, 0.5) !important;
+            cursor: default;
+        }
+        
+        .puzzle-piece.empty:hover {
+            transform: none;
+        }
+        
+        /* 问答游戏样式 */
+        .quiz-game {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .question-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 2rem;
+        }
+        
+        .question {
+            font-size: 1.5rem;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .option-button {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .option-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 烟花游戏样式 */
+        .fireworks-game {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .fireworks-game-canvas {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            cursor: crosshair;
+            margin-bottom: 1rem;
+        }
+        
+        .fireworks-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .instruction {
+            color: #fff;
+            font-size: 1.2rem;
+        }
+        
+        .clear-button {
+            padding: 0.8rem 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .clear-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 游戏信息样式 */
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            color: #fff;
+            font-size: 1.2rem;
+        }
+        
+        .quiz-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            color: #fff;
+            font-size: 1.2rem;
+        }
+        
+        .restart-button {
+            padding: 0.8rem 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .restart-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 结果弹窗样式 */
+        .result-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .result-content {
+            background: linear-gradient(135deg, #8B0000 0%, #DC143C 50%, #FF6347 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+        }
+        
+        .result-content h3 {
+            color: #fff;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+        
+        .result-content p {
+            color: #fff;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .result-button {
+            padding: 0.8rem 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .result-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- 开场特效屏幕 -->
+    <div class="opening-screen" id="openingScreen">
+        <canvas class="fireworks-canvas" id="fireworksCanvas"></canvas>
+        <div class="blessing-text">新年快乐 万事如意</div>
+        <div class="year-display">2026</div>
+        <div class="blessing-text">愿新的一年带给你无限欢乐</div>
+    </div>
+    
+    <!-- 漂浮的灯笼装饰 -->
+    <div class="floating-lanterns" id="floatingLanterns"></div>
+    
+    <!-- 主页面内容 -->
+    <div class="main-container" id="mainContainer">
+        <header>
+            <h1>🎊 2026元旦祝福 🎊</h1>
+        </header>
+        
+        <section class="countdown-container">
+            <h2 class="countdown-title">距离2026年元旦还有</h2>
+            <div class="countdown" id="countdown">
+                <div class="countdown-item">
+                    <span class="countdown-number" id="days">00</span>
+                    <span class="countdown-label">天</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="hours">00</span>
+                    <span class="countdown-label">小时</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="minutes">00</span>
+                    <span class="countdown-label">分钟</span>
+                </div>
+                <div class="countdown-item">
+                    <span class="countdown-number" id="seconds">00</span>
+                    <span class="countdown-label">秒</span>
+                </div>
+            </div>
+        </section>
+        
+        <section class="blessing-section">
+            <h2 class="blessing-title">新年祝福</h2>
+            <div class="blessing-content">
+                亲爱的同学们，新的一年即将到来，愿大家在新的一年里学业进步，身体健康，心想事成！
+                愿2026年带给大家更多的欢笑、成功和美好的回忆！
+            </div>
+        </section>
+        
+        <section class="wishes-container">
+            <div class="wish-card">
+                <div class="wish-icon">📚</div>
+                <div class="wish-text">学业有成，金榜题名</div>
+            </div>
+            <div class="wish-card">
+                <div class="wish-icon">🏃</div>
+                <div class="wish-text">身体健康，活力四射</div>
+            </div>
+            <div class="wish-card">
+                <div class="wish-icon">😊</div>
+                <div class="wish-text">快乐常伴，笑容常在</div>
+            </div>
+            <div class="wish-card">
+                <div class="wish-icon">🎯</div>
+                <div class="wish-text">目标达成，梦想成真</div>
+            </div>
+            <div class="wish-card">
+                <div class="wish-icon">💰</div>
+                <div class="wish-text">财源广进，富贵吉祥</div>
+            </div>
+            <div class="wish-card">
+                <div class="wish-icon">❤️</div>
+                <div class="wish-text">爱情甜蜜，友情长存</div>
+            </div>
+        </section>
+        
+        <section class="games-section">
+            <h2 class="games-title">新年小游戏</h2>
+            <div class="games-container">
+                <div class="game-card" data-game="memory">
+                    <div class="game-icon">🧩</div>
+                    <div class="game-name">记忆翻牌</div>
+                    <div class="game-description">测试你的记忆力，找出相同的卡片</div>
+                </div>
+                <div class="game-card" data-game="puzzle">
+                    <div class="game-icon">🎯</div>
+                    <div class="game-name">拼图游戏</div>
+                    <div class="game-description">完成美丽的元旦拼图</div>
+                </div>
+                <div class="game-card" data-game="quiz">
+                    <div class="game-icon">🎮</div>
+                    <div class="game-name">新年问答</div>
+                    <div class="game-description">关于新年知识的趣味问答</div>
+                </div>
+                <div class="game-card" data-game="fireworks">
+                    <div class="game-icon">🎆</div>
+                    <div class="game-name">烟花绽放</div>
+                    <div class="game-description">点击创造属于你的烟花秀</div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <!-- 音乐控制按钮 -->
+    <div class="music-control" id="musicControl">
+        <div class="music-icon" id="musicIcon">🎵</div>
+    </div>
+    
+    <script>
+        // 烟花效果
+        class Firework {
+            constructor(canvas, ctx) {
+                this.canvas = canvas;
+                this.ctx = ctx;
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height;
+                this.targetY = Math.random() * canvas.height * 0.5;
+                this.speed = 2 + Math.random() * 3;
+                this.acceleration = 1.05;
+                this.hue = Math.random() * 360;
+                this.brightness = Math.random() * 30 + 70;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.02 + 0.005;
+                this.exploded = false;
+                this.particles = [];
+            }
+            
+            update() {
+                if (!this.exploded) {
+                    this.speed *= this.acceleration;
+                    this.y -= this.speed;
+                    
+                    if (this.y <= this.targetY || this.speed <= 0) {
+                        this.explode();
+                    }
+                } else {
+                    this.particles.forEach((particle, index) => {
+                        particle.update();
+                        if (particle.alpha <= 0) {
+                            this.particles.splice(index, 1);
+                        }
+                    });
+                }
+                
+                return this.exploded && this.particles.length === 0;
+            }
+            
+            explode() {
+                this.exploded = true;
+                const particleCount = 30 + Math.random() * 20;
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const angle = (Math.PI * 2 / particleCount) * i;
+                    const velocity = 1 + Math.random() * 6;
+                    this.particles.push(new Particle(
+                        this.x,
+                        this.y,
+                        Math.cos(angle) * velocity,
+                        Math.sin(angle) * velocity,
+                        this.hue + Math.random() * 30 - 15,
+                        this.brightness,
+                        this.ctx
+                    ));
+                }
+            }
+            
+            draw() {
+                if (!this.exploded) {
+                    this.ctx.beginPath();
+                    this.ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `hsla(${this.hue}, 100%, ${this.brightness}%, ${this.alpha})`;
+                    this.ctx.fill();
+                    
+                    // 尾迹效果
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.x, this.y);
+                    this.ctx.lineTo(this.x, this.y + 10);
+                    this.ctx.strokeStyle = `hsla(${this.hue}, 100%, ${this.brightness}%, ${this.alpha * 0.5})`;
+                    this.ctx.lineWidth = 2;
+                    this.ctx.stroke();
+                } else {
+                    this.particles.forEach(particle => particle.draw());
+                }
+            }
+        }
+        
+        class Particle {
+            constructor(x, y, vx, vy, hue, brightness, ctx) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.hue = hue;
+                this.brightness = brightness;
+                this.alpha = 1;
+                this.decay = Math.random() * 0.02 + 0.01;
+                this.ctx = ctx;
+                this.gravity = 0.05;
+            }
+            
+            update() {
+                this.vx *= 0.99;
+                this.vy *= 0.99;
+                this.vy += this.gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= this.decay;
+            }
+            
+            draw() {
+                this.ctx.beginPath();
+                this.ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                this.ctx.fillStyle = `hsla(${this.hue}, 100%, ${this.brightness}%, ${this.alpha})`;
+                this.ctx.fill();
+            }
+        }
+        
+        // 初始化烟花动画
+        function initFireworks() {
+            const canvas = document.getElementById('fireworksCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const fireworks = [];
+            let animationId;
+            
+            function animate() {
+                ctx.fillStyle = 'rgba(10, 14, 39, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                if (Math.random() < 0.08) {
+                    fireworks.push(new Firework(canvas, ctx));
+                }
+                
+                for (let i = fireworks.length - 1; i >= 0; i--) {
+                    if (fireworks[i].update()) {
+                        fireworks.splice(i, 1);
+                    } else {
+                        fireworks[i].draw();
+                    }
+                }
+                
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            animate();
+            
+            // 5秒后停止烟花动画并显示主页面
+            setTimeout(() => {
+                cancelAnimationFrame(animationId);
+                document.getElementById('openingScreen').classList.add('hidden');
+                document.getElementById('mainContainer').classList.add('visible');
+            }, 8000);
+        }
+        
+        // 倒计时功能
+        function updateCountdown() {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const newYear = new Date(currentYear + 1, 0, 1); // 下一年的1月1日
+            
+            // 如果当前是1月1日之后，则计算到下一年的元旦
+            if (now.getMonth() === 0 && now.getDate() === 1) {
+                newYear.setFullYear(currentYear + 1);
+            }
+            
+            const diff = newYear - now;
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            document.getElementById('days').textContent = String(days).padStart(2, '0');
+            document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+        }
+        
+        // 创建漂浮灯笼
+        function createFloatingLanterns() {
+            const container = document.getElementById('floatingLanterns');
+            const lanternCount = 6;
+            
+            for (let i = 0; i < lanternCount; i++) {
+                const lantern = document.createElement('div');
+                lantern.className = 'lantern';
+                lantern.style.left = Math.random() * 100 + '%';
+                lantern.style.animationDelay = Math.random() * 15 + 's';
+                lantern.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(lantern);
+            }
+        }
+        
+        // 游戏卡片点击功能
+        function initGameCards() {
+            const gameCards = document.querySelectorAll('.game-card');
+            
+            gameCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const gameType = card.getAttribute('data-game');
+                    openGamePage(gameType);
+                });
+            });
+        }
+        
+        // 打开游戏页面
+        function openGamePage(gameType) {
+            // 创建游戏页面
+            const gamePage = document.createElement('div');
+            gamePage.className = 'game-page';
+            gamePage.innerHTML = `
+                <div class="game-container">
+                    <div class="game-header">
+                        <h2 class="game-title">${getGameTitle(gameType)}</h2>
+                        <button class="close-button" id="closeGame">✕</button>
+                    </div>
+                    <div class="game-content" id="gameContent">
+                        ${getGameContent(gameType)}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(gamePage);
+            
+            // 添加关闭按钮事件
+            document.getElementById('closeGame').addEventListener('click', () => {
+                document.body.removeChild(gamePage);
+            });
+            
+            // 初始化游戏
+            initSpecificGame(gameType);
+        }
+        
+        // 获取游戏标题
+        function getGameTitle(gameType) {
+            const titles = {
+                memory: '记忆翻牌',
+                puzzle: '拼图游戏',
+                quiz: '新年问答',
+                fireworks: '烟花绽放'
+            };
+            return titles[gameType] || '游戏';
+        }
+        
+        // 获取游戏内容
+        function getGameContent(gameType) {
+            const contents = {
+                memory: `
+                    <div class="memory-game" id="memoryGame">
+                        <div class="memory-grid" id="memoryGrid">
+                            <!-- 卡片将通过JavaScript动态生成 -->
+                        </div>
+                        <div class="game-info">
+                            <div class="moves">步数: <span id="moves">0</span></div>
+                            <button class="restart-button" id="restartMemory">重新开始</button>
+                        </div>
+                    </div>
+                `,
+                puzzle: `
+                    <div class="puzzle-game" id="puzzleGame">
+                        <div class="puzzle-container" id="puzzleContainer">
+                            <!-- 拼图将通过JavaScript动态生成 -->
+                        </div>
+                        <div class="game-info">
+                            <div class="timer">时间: <span id="timer">00:00</span></div>
+                            <button class="restart-button" id="restartPuzzle">重新开始</button>
+                        </div>
+                    </div>
+                `,
+                quiz: `
+                    <div class="quiz-game" id="quizGame">
+                        <div class="question-container" id="questionContainer">
+                            <div class="question" id="question">问题将在这里显示</div>
+                            <div class="options" id="options">
+                                <!-- 选项将通过JavaScript动态生成 -->
+                            </div>
+                        </div>
+                        <div class="quiz-info">
+                            <div class="score">得分: <span id="score">0</span></div>
+                            <button class="restart-button" id="restartQuiz">重新开始</button>
+                        </div>
+                    </div>
+                `,
+                fireworks: `
+                    <div class="fireworks-game" id="fireworksGame">
+                        <canvas class="fireworks-game-canvas" id="fireworksGameCanvas"></canvas>
+                        <div class="fireworks-info">
+                            <div class="instruction">点击屏幕创造烟花！</div>
+                            <button class="clear-button" id="clearFireworks">清空烟花</button>
+                        </div>
+                    </div>
+                `
+            };
+            return contents[gameType] || '<p>游戏加载中...</p>';
+        }
+        
+        // 初始化特定游戏
+        function initSpecificGame(gameType) {
+            switch (gameType) {
+                case 'memory':
+                    initMemoryGame();
+                    break;
+                case 'puzzle':
+                    initPuzzleGame();
+                    break;
+                case 'quiz':
+                    initQuizGame();
+                    break;
+                case 'fireworks':
+                    initFireworksGame();
+                    break;
+            }
+        }
+        
+        // 记忆翻牌游戏
+        function initMemoryGame() {
+            const emojis = ['🎊', '🎆', '🎇', '✨', '🎉', '🎁', '🧧', '🏮'];
+            const cards = [...emojis, ...emojis];
+            const memoryGrid = document.getElementById('memoryGrid');
+            const movesDisplay = document.getElementById('moves');
+            let moves = 0;
+            let flippedCards = [];
+            let matchedPairs = 0;
+            
+            // 洗牌
+            cards.sort(() => Math.random() - 0.5);
+            
+            // 创建卡片
+            cards.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.dataset.emoji = emoji;
+                card.dataset.index = index;
+                card.innerHTML = '<div class="card-inner"><div class="card-front">?</div><div class="card-back">' + emoji + '</div></div>';
+                
+                card.addEventListener('click', () => {
+                    if (flippedCards.length < 2 && !card.classList.contains('flipped') && !card.classList.contains('matched')) {
+                        card.classList.add('flipped');
+                        flippedCards.push(card);
+                        
+                        if (flippedCards.length === 2) {
+                            moves++;
+                            movesDisplay.textContent = moves;
+                            
+                            setTimeout(() => {
+                                if (flippedCards[0].dataset.emoji === flippedCards[1].dataset.emoji) {
+                                    flippedCards[0].classList.add('matched');
+                                    flippedCards[1].classList.add('matched');
+                                    matchedPairs++;
+                                    
+                                    if (matchedPairs === emojis.length) {
+                                        setTimeout(() => {
+                                            showGameResult('记忆翻牌', `恭喜完成！共用了 ${moves} 步`);
+                                        }, 500);
+                                    }
+                                } else {
+                                    flippedCards[0].classList.remove('flipped');
+                                    flippedCards[1].classList.remove('flipped');
+                                }
+                                flippedCards = [];
+                            }, 1000);
+                        }
+                    }
+                });
+                
+                memoryGrid.appendChild(card);
+            });
+            
+            // 重新开始按钮
+            document.getElementById('restartMemory').addEventListener('click', () => {
+                memoryGrid.innerHTML = '';
+                moves = 0;
+                movesDisplay.textContent = moves;
+                flippedCards = [];
+                matchedPairs = 0;
+                initMemoryGame();
+            });
+        }
+        
+        // 拼图游戏
+        function initPuzzleGame() {
+            const puzzleContainer = document.getElementById('puzzleContainer');
+            const timerDisplay = document.getElementById('timer');
+            let seconds = 0;
+            let timerInterval;
+            let gridSize = 3;
+            let pieces = [];
+            let emptyIndex = gridSize * gridSize - 1; // 空白块位置
+            let isGameWon = false;
+            
+            // 创建拼图块
+            const imageUrl = 'https://picsum.photos/seed/newyear2026/300/300.jpg';
+            
+            // 启动计时器
+            timerInterval = setInterval(() => {
+                if (!isGameWon) {
+                    seconds++;
+                    const minutes = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+            
+            // 初始化拼图
+            function initPuzzle() {
+                puzzleContainer.innerHTML = '';
+                pieces = [];
+                isGameWon = false;
+                
+                // 创建拼图块数组
+                for (let i = 0; i < gridSize * gridSize; i++) {
+                    const piece = document.createElement('div');
+                    piece.className = 'puzzle-piece';
+                    piece.dataset.index = i;
+                    piece.dataset.currentPos = i;
+                    
+                    if (i === emptyIndex) {
+                        // 最后一块是空白块
+                        piece.classList.add('empty');
+                        piece.style.background = 'transparent';
+                        piece.style.border = '2px dashed rgba(255, 255, 255, 0.3)';
+                    } else {
+                        piece.style.backgroundImage = `url(${imageUrl})`;
+                        piece.style.backgroundSize = `${gridSize * 100}px ${gridSize * 100}px`;
+                        
+                        const row = Math.floor(i / gridSize);
+                        const col = i % gridSize;
+                        piece.style.backgroundPosition = `-${col * 100}px -${row * 100}px`;
+                    }
+                    
+                    piece.addEventListener('click', () => {
+                        if (!isGameWon) {
+                            movePiece(i);
+                        }
+                    });
+                    
+                    pieces.push(piece);
+                    puzzleContainer.appendChild(piece);
+                }
+                
+                // 打乱拼图
+                shufflePuzzle();
+            }
+            
+            // 打乱拼图
+            function shufflePuzzle() {
+                // 进行多次随机移动来打乱拼图
+                const shuffleMoves = 100;
+                for (let i = 0; i < shuffleMoves; i++) {
+                    const validMoves = getValidMoves();
+                    if (validMoves.length > 0) {
+                        const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+                        swapPieces(randomMove, emptyIndex, false);
+                    }
+                }
+                seconds = 0;
+                timerDisplay.textContent = '00:00';
+            }
+            
+            // 获取可以移动的块
+            function getValidMoves() {
+                const validMoves = [];
+                const emptyRow = Math.floor(emptyIndex / gridSize);
+                const emptyCol = emptyIndex % gridSize;
+                
+                // 检查上方
+                if (emptyRow > 0) {
+                    validMoves.push(emptyIndex - gridSize);
+                }
+                // 检查下方
+                if (emptyRow < gridSize - 1) {
+                    validMoves.push(emptyIndex + gridSize);
+                }
+                // 检查左侧
+                if (emptyCol > 0) {
+                    validMoves.push(emptyIndex - 1);
+                }
+                // 检查右侧
+                if (emptyCol < gridSize - 1) {
+                    validMoves.push(emptyIndex + 1);
+                }
+                
+                return validMoves;
+            }
+            
+            // 移动拼图块
+            function movePiece(index) {
+                const validMoves = getValidMoves();
+                if (validMoves.includes(index)) {
+                    swapPieces(index, emptyIndex, true);
+                }
+            }
+            
+            // 交换拼图块
+            function swapPieces(index1, index2, updateEmpty = true) {
+                const piece1 = pieces[index1];
+                const piece2 = pieces[index2];
+                
+                // 交换DOM位置
+                const temp = document.createElement('div');
+                puzzleContainer.insertBefore(temp, piece1);
+                puzzleContainer.insertBefore(piece1, piece2);
+                puzzleContainer.insertBefore(piece2, temp);
+                puzzleContainer.removeChild(temp);
+                
+                // 交换数组中的位置
+                pieces[index1] = piece2;
+                pieces[index2] = piece1;
+                
+                // 更新当前位置
+                const tempPos = piece1.dataset.currentPos;
+                piece1.dataset.currentPos = piece2.dataset.currentPos;
+                piece2.dataset.currentPos = tempPos;
+                
+                // 更新空白块位置
+                if (updateEmpty) {
+                    emptyIndex = index1;
+                    
+                    // 检查是否完成
+                    if (checkWin()) {
+                        isGameWon = true;
+                        clearInterval(timerInterval);
+                        setTimeout(() => {
+                            showGameResult('拼图游戏', `恭喜完成！用时 ${timerDisplay.textContent}`);
+                        }, 500);
+                    }
+                }
+            }
+            
+            // 检查是否完成
+            function checkWin() {
+                for (let i = 0; i < pieces.length; i++) {
+                    if (pieces[i].dataset.index !== pieces[i].dataset.currentPos) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            
+            // 初始化拼图
+            initPuzzle();
+            
+            // 重新开始按钮
+            document.getElementById('restartPuzzle').addEventListener('click', () => {
+                clearInterval(timerInterval);
+                seconds = 0;
+                timerDisplay.textContent = '00:00';
+                initPuzzle();
+                timerInterval = setInterval(() => {
+                    if (!isGameWon) {
+                        seconds++;
+                        const minutes = Math.floor(seconds / 60);
+                        const secs = seconds % 60;
+                        timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                    }
+                }, 1000);
+            });
+        }
+        
+        // 问答游戏
+        function initQuizGame() {
+            const questions = [
+                {
+                    question: '元旦是哪一天？',
+                    options: ['1月1日', '2月1日', '3月1日', '12月1日'],
+                    correct: 0
+                },
+                {
+                    question: '2026年是哪个生肖年？',
+                    options: ['龙年', '蛇年', '马年', '羊年'],
+                    correct: 1
+                },
+                {
+                    question: '中国传统新年是哪个节日？',
+                    options: ['元旦', '元宵节', '春节', '中秋节'],
+                    correct: 2
+                },
+                {
+                    question: '以下哪个不是新年习俗？',
+                    options: ['放鞭炮', '贴春联', '吃月饼', '发红包'],
+                    correct: 2
+                },
+                {
+                    question: '新年祝福语"恭喜发财"主要流行于哪里？',
+                    options: ['北京', '上海', '广东', '四川'],
+                    correct: 2
+                }
+            ];
+            
+            const questionElement = document.getElementById('question');
+            const optionsElement = document.getElementById('options');
+            const scoreDisplay = document.getElementById('score');
+            
+            let currentQuestion = 0;
+            let score = 0;
+            
+            function showQuestion() {
+                if (currentQuestion >= questions.length) {
+                    showGameResult('新年问答', `恭喜完成！得分: ${score}/${questions.length}`);
+                    return;
+                }
+                
+                const question = questions[currentQuestion];
+                questionElement.textContent = question.question;
+                optionsElement.innerHTML = '';
+                
+                question.options.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'option-button';
+                    button.textContent = option;
+                    button.addEventListener('click', () => {
+                        if (index === question.correct) {
+                            score++;
+                            scoreDisplay.textContent = score;
+                            button.style.backgroundColor = '#4CAF50';
+                        } else {
+                            button.style.backgroundColor = '#f44336';
+                        }
+                        
+                        setTimeout(() => {
+                            currentQuestion++;
+                            showQuestion();
+                        }, 1000);
+                    });
+                    
+                    optionsElement.appendChild(button);
+                });
+            }
+            
+            showQuestion();
+            
+            // 重新开始按钮
+            document.getElementById('restartQuiz').addEventListener('click', () => {
+                currentQuestion = 0;
+                score = 0;
+                scoreDisplay.textContent = score;
+                showQuestion();
+            });
+        }
+        
+        // 烟花游戏
+        function initFireworksGame() {
+            const canvas = document.getElementById('fireworksGameCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 设置画布大小
+            canvas.width = 800;
+            canvas.height = 500;
+            
+            const fireworks = [];
+            
+            // 烟花类（复用主页面的烟花类）
+            class GameFirework {
+                constructor(x, y) {
+                    this.x = x;
+                    this.y = canvas.height;
+                    this.targetY = y;
+                    this.speed = 5;
+                    this.hue = Math.random() * 360;
+                    this.brightness = Math.random() * 30 + 70;
+                    this.exploded = false;
+                    this.particles = [];
+                }
+                
+                update() {
+                    if (!this.exploded) {
+                        this.y -= this.speed;
+                        
+                        if (this.y <= this.targetY) {
+                            this.explode();
+                        }
+                    } else {
+                        this.particles.forEach((particle, index) => {
+                            particle.update();
+                            if (particle.alpha <= 0) {
+                                this.particles.splice(index, 1);
+                            }
+                        });
+                    }
+                }
+                
+                explode() {
+                    this.exploded = true;
+                    const particleCount = 30;
+                    
+                    for (let i = 0; i < particleCount; i++) {
+                        const angle = (Math.PI * 2 / particleCount) * i;
+                        const velocity = 1 + Math.random() * 6;
+                        this.particles.push(new GameParticle(
+                            this.x,
+                            this.y,
+                            Math.cos(angle) * velocity,
+                            Math.sin(angle) * velocity,
+                            this.hue + Math.random() * 30 - 15,
+                            this.brightness
+                        ));
+                    }
+                }
+                
+                draw() {
+                    if (!this.exploded) {
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                        ctx.fillStyle = `hsl(${this.hue}, 100%, ${this.brightness}%)`;
+                        ctx.fill();
+                    } else {
+                        this.particles.forEach(particle => particle.draw());
+                    }
+                }
+            }
+            
+            class GameParticle {
+                constructor(x, y, vx, vy, hue, brightness) {
+                    this.x = x;
+                    this.y = y;
+                    this.vx = vx;
+                    this.vy = vy;
+                    this.hue = hue;
+                    this.brightness = brightness;
+                    this.alpha = 1;
+                    this.decay = Math.random() * 0.02 + 0.01;
+                    this.gravity = 0.05;
+                }
+                
+                update() {
+                    this.vx *= 0.99;
+                    this.vy *= 0.99;
+                    this.vy += this.gravity;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.alpha -= this.decay;
+                }
+                
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsla(${this.hue}, 100%, ${this.brightness}%, ${this.alpha})`;
+                    ctx.fill();
+                }
+            }
+            
+            // 动画循环
+            function animate() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                for (let i = fireworks.length - 1; i >= 0; i--) {
+                    fireworks[i].update();
+                    fireworks[i].draw();
+                    
+                    if (fireworks[i].exploded && fireworks[i].particles.length === 0) {
+                        fireworks.splice(i, 1);
+                    }
+                }
+                
+                requestAnimationFrame(animate);
+            }
+            
+            animate();
+            
+            // 点击画布创建烟花
+            canvas.addEventListener('click', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                fireworks.push(new GameFirework(x, y));
+            });
+            
+            // 清空按钮
+            document.getElementById('clearFireworks').addEventListener('click', () => {
+                fireworks.length = 0;
+                ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            });
+        }
+        
+        // 显示游戏结果
+        function showGameResult(gameName, result) {
+            const resultModal = document.createElement('div');
+            resultModal.className = 'result-modal';
+            resultModal.innerHTML = `
+                <div class="result-content">
+                    <h3>${gameName}</h3>
+                    <p>${result}</p>
+                    <button class="result-button">确定</button>
+                </div>
+            `;
+            
+            document.body.appendChild(resultModal);
+            
+            resultModal.querySelector('.result-button').addEventListener('click', () => {
+                document.body.removeChild(resultModal);
+            });
+        }
+        
+        // 点击效果
+        function initClickEffect() {
+            document.addEventListener('click', (e) => {
+                // 排除按钮和输入框的点击
+                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') {
+                    return;
+                }
+                
+                const effect = document.createElement('div');
+                effect.className = 'click-effect';
+                effect.style.left = (e.clientX - 15) + 'px';
+                effect.style.top = (e.clientY - 15) + 'px';
+                document.body.appendChild(effect);
+                
+                setTimeout(() => {
+                    document.body.removeChild(effect);
+                }, 600);
+            });
+        }
+        
+        // 祝福卡片点击效果
+        function initWishCardInteraction() {
+            const wishCards = document.querySelectorAll('.wish-card');
+            const blessings = [
+                '愿你的每一天都充满阳光和欢笑！',
+                '新的一年，新的开始，新的希望！',
+                '愿所有的美好都如期而至！',
+                '愿你被这个世界温柔以待！',
+                '新的一年，愿你成为更好的自己！',
+                '愿你的梦想在新的一年里绽放！'
+            ];
+            
+            wishCards.forEach((card, index) => {
+                card.addEventListener('click', () => {
+                    // 创建临时祝福提示
+                    const toast = document.createElement('div');
+                    toast.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: rgba(255, 107, 107, 0.9);
+                        color: white;
+                        padding: 1.5rem 2rem;
+                        border-radius: 10px;
+                        font-size: 1.2rem;
+                        z-index: 1000;
+                        animation: fadeInUp 0.5s ease-out;
+                        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                    `;
+                    toast.textContent = blessings[index];
+                    document.body.appendChild(toast);
+                    
+                    setTimeout(() => {
+                        toast.style.animation = 'fadeInUp 0.5s ease-out reverse';
+                        setTimeout(() => {
+                            document.body.removeChild(toast);
+                        }, 500);
+                    }, 2000);
+                });
+            });
+        }
+        
+        // 音乐控制（模拟）
+        function initMusicControl() {
+            const musicControl = document.getElementById('musicControl');
+            const musicIcon = document.getElementById('musicIcon');
+            let isPlaying = false;
+            
+            musicControl.addEventListener('click', () => {
+                isPlaying = !isPlaying;
+                musicIcon.textContent = isPlaying ? '🔇' : '🎵';
+                
+                // 这里可以添加实际的音乐播放逻辑
+                if (isPlaying) {
+                    console.log('音乐开始播放');
+                } else {
+                    console.log('音乐停止播放');
+                }
+            });
+        }
+        
+        // 页面加载完成后初始化所有功能
+        window.addEventListener('load', () => {
+            initFireworks();
+            createFloatingLanterns();
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+            initGameCards();
+            initClickEffect();
+            initWishCardInteraction();
+            initMusicControl();
+        });
+        
+        // 窗口大小改变时重新设置画布大小
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('fireworksCanvas');
+            if (canvas) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+        });
+    </script>
+</body>
+</html>
