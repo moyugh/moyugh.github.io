@@ -1,0 +1,3574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>打怪游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            cursor: crosshair;
+        }
+
+        #gameCanvas {
+            display: block;
+            background: #000;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+        }
+
+        .stats-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .bar-container {
+            width: 200px;
+            height: 20px;
+            background: #000;
+            border: 2px solid #fff;
+            position: relative;
+        }
+
+        .bar {
+            height: 100%;
+            background: #fff;
+            transition: width 0.3s ease;
+        }
+
+        .bar-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #000;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .health-bar .bar {
+            background: #fff;
+        }
+
+        .exp-bar .bar {
+            background: #888;
+        }
+
+        .level-display {
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .skill-bar {
+            position: fixed;
+            bottom: 20px;
+            right: 240px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .skill-slot {
+            width: 60px;
+            height: 60px;
+            background: #000;
+            border: 2px solid #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .skill-slot:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        .skill-slot.active {
+            border-color: #888;
+        }
+
+        .skill-slot .skill-key {
+            position: absolute;
+            top: 2px;
+            left: 5px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .skill-slot .skill-name {
+            font-size: 10px;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .skill-slot .skill-cooldown {
+            position: absolute;
+            bottom: 2px;
+            right: 5px;
+            font-size: 10px;
+        }
+
+        .minimap {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 200px;
+            height: 200px;
+            background: #000;
+            border: 2px solid #fff;
+            z-index: 100;
+        }
+
+        .wave-display {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 100;
+            text-align: center;
+        }
+
+        .wave-progress-container {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 25px;
+            background: #000;
+            border: 2px solid #fff;
+            z-index: 100;
+        }
+
+        .wave-progress-bar {
+            height: 100%;
+            background: #fff;
+            transition: width 0.3s ease;
+        }
+
+        .wave-progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #000;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .boss-health-container {
+            position: fixed;
+            top: 95px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 30px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .boss-health-label {
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            min-width: 60px;
+        }
+
+        .boss-health-bar-container {
+            flex: 1;
+            height: 100%;
+            background: #000;
+            border: 2px solid #fff;
+            position: relative;
+        }
+
+        .boss-health-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0000, #ff4444);
+            transition: width 0.3s ease;
+        }
+
+        .boss-health-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .btn {
+            background: #fff;
+            color: #000;
+            border: 2px solid #fff;
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .btn:hover {
+            background: #000;
+            color: #fff;
+        }
+
+        .class-selection {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            color: #000;
+            padding: 40px 60px;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+        }
+
+        .class-selection h2 {
+            font-size: 36px;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .class-options {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .class-option {
+            background: #000;
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 20px 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 150px;
+        }
+
+        .class-option:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        .class-option h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .class-option p {
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .name-registration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+
+        .name-registration h2 {
+            color: #fff;
+            font-size: 32px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .name-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .name-registration input {
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 15px 20px;
+            font-size: 20px;
+            width: 350px;
+            text-align: center;
+            outline: none;
+        }
+
+        .name-registration input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .name-registration input:focus {
+            border-color: #fff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .admin-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: #fff;
+            border: 2px solid #fff;
+            width: 80%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 300;
+            display: none;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 2px solid #fff;
+        }
+
+        .admin-header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .admin-content {
+            padding: 20px;
+        }
+
+        .admin-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .admin-section h3 {
+            margin-top: 0;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .admin-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .admin-item label {
+            min-width: 100px;
+        }
+
+        .admin-item input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            border: 1px solid #fff;
+            padding: 8px 10px;
+            outline: none;
+        }
+
+        .btn-small {
+            background: #fff;
+            color: #000;
+            border: 2px solid #fff;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-small:hover {
+            background: #000;
+            color: #fff;
+        }
+
+        .admin-toggle-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 200;
+            transition: all 0.3s ease;
+        }
+
+        .admin-toggle-btn:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        .ability-selection {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            color: #000;
+            padding: 40px 60px;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+        }
+
+        .game-over h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .game-over p {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        .ability-selection {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            color: #000;
+            padding: 40px;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+            min-width: 600px;
+        }
+
+        .ability-selection h2 {
+            font-size: 36px;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .ability-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .ability-card {
+            flex: 1;
+            background: #000;
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 30px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ability-card:hover {
+            background: #fff;
+            color: #000;
+            transform: scale(1.05);
+        }
+
+        .ability-card h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .ability-card p {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .player-info-btn {
+            position: fixed;
+            bottom: 100px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            background: #000;
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            display: none;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .player-info-btn:hover {
+            background: #fff;
+            color: #000;
+            transform: scale(1.1);
+        }
+
+        .player-info-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #000;
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 30px;
+            z-index: 200;
+            display: none;
+            min-width: 400px;
+        }
+
+        .player-info-panel h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .player-info-panel .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-bottom: 1px solid #fff;
+        }
+
+        .player-info-panel .info-label {
+            font-weight: bold;
+        }
+
+        .player-info-panel .info-value {
+            text-align: right;
+        }
+
+        .player-info-panel .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .player-info-panel .close-btn:hover {
+            color: #888;
+        }
+
+        .coordinates-display {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 14px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 15px;
+            border: 1px solid #fff;
+        }
+        
+
+
+        /* 开始界面样式 */
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 300;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .start-screen.visible {
+            pointer-events: all;
+        }
+
+        /* 左侧主角 */
+        .start-character {
+            position: absolute;
+            top: 50%;
+            left: 20%;
+            transform: translateY(-50%);
+            width: 100px;
+            height: 100px;
+            transition: all 1s ease;
+            z-index: 310;
+            cursor: pointer;
+        }
+
+        /* 暂停状态下才显示角色信息悬停效果 */
+        .start-screen.paused .start-character:hover .character-info {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .character-info {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 15px;
+            border-radius: 5px;
+            min-width: 200px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 320;
+            pointer-events: none;
+        }
+
+        /* 右侧蒙版 */
+        .start-overlay {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 1s ease;
+            z-index: 305;
+        }
+
+        .start-title {
+            font-size: 64px;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            margin-bottom: 60px;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            transition: all 1s ease;
+        }
+
+        .start-buttons {
+            display: flex;
+            gap: 30px;
+            transition: all 1s ease;
+        }
+
+        /* 游戏内容弹出动画 */
+        .game-content {
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .game-content.visible {
+            opacity: 1;
+        }
+
+        /* 设置按钮样式 */
+        .settings-btn {
+            background: #fff;
+            color: #000;
+            border: 2px solid #fff;
+            padding: 12px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .settings-btn:hover {
+            background: #000;
+            color: #fff;
+        }
+
+        /* 技能背包样式 */
+        .skill-backpack {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: #fff;
+            border: 2px solid #fff;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .backpack-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #fff;
+        }
+
+        .backpack-header h2 {
+            margin: 0;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .skill-storage {
+            margin-bottom: 30px;
+        }
+
+        .skill-storage h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .storage-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 10px;
+        }
+
+        .storage-slot {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .storage-slot:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .storage-slot.active {
+            border-color: #888;
+        }
+
+        .storage-slot.selected,
+        .equipment-slot.selected {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: #fff;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        .skill-equipment {
+            margin-bottom: 20px;
+        }
+
+        .skill-equipment h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .equipment-slots {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .equipment-slot {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .equipment-slot:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .equipment-slot.active-only {
+            border-color: #fff;
+        }
+
+        .equipment-slot.passive-only {
+            border-color: #fff;
+        }
+
+        .equipment-slot.universal {
+            border-color: #fff;
+        }
+
+        .equipment-slot .slot-label {
+            position: absolute;
+            bottom: 5px;
+            font-size: 10px;
+            text-align: center;
+            width: 100%;
+            opacity: 0.8;
+        }
+
+        /* 技能类型显示样式 */
+        .equipment-slot[data-type="active"] {
+            width: 100px;
+            height: 100px;
+        }
+
+        .equipment-slot[data-type="active"]::after {
+            content: "";
+            position: absolute;
+            width: 70%;
+            height: 70%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid #fff;
+        }
+
+        .equipment-slot[data-type="passive"]::after,
+        .storage-slot.passive::after {
+            content: "";
+            position: absolute;
+            width: 40%;
+            height: 40%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid #fff;
+        }
+
+        .equipment-slot[data-type="universal"]::after {
+            content: "";
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid #fff;
+        }
+
+        /* 技能内容显示 */
+        .skill-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .skill-name {
+            font-size: 12px;
+            text-align: center;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .skill-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <canvas id="minimapCanvas" class="minimap" style="display: none;"></canvas>
+    
+    <!-- 开始界面 -->
+    <div class="start-screen visible" id="startScreen">
+        <!-- 左侧主角 -->
+        <div class="start-character" id="startCharacter">
+            <div class="character-info">
+                <h3>几何战士</h3>
+                <p>生命值: 100</p>
+                <p>攻击力: 25</p>
+                <p>移动速度: 5</p>
+            </div>
+        </div>
+        
+        <!-- 右侧蒙版 -->
+        <div class="start-overlay" id="startOverlay">
+            <h1 class="start-title">几何射击</h1>
+            <div class="start-buttons">
+                <button class="btn" id="startGameBtn" onclick="startGame()">开始游戏</button>
+                <button class="settings-btn" id="settingsBtn" onclick="openSettings()">设置</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 游戏内容容器 -->
+    <div class="game-content" id="gameContent">
+        <div class="wave-display">
+            波次: <span id="wave">1</span>
+        </div>
+        
+        <div class="wave-progress-container">
+            <div class="wave-progress-bar" id="waveProgressBar" style="width: 0%"></div>
+            <div class="wave-progress-text"><span id="waveProgressText">0/0</span></div>
+        </div>
+        
+        <div class="boss-health-container" id="bossHealthContainer" style="display: none;">
+            <div class="boss-health-label">BOSS</div>
+            <div class="boss-health-bar-container">
+                <div class="boss-health-bar" id="bossHealthBar" style="width: 100%"></div>
+                <div class="boss-health-text"><span id="bossHealthText">0</span>/<span id="bossMaxHealthText">0</span></div>
+            </div>
+        </div>
+        
+        <div class="stats-container">
+            <div class="level-display">等级: <span id="level">1</span></div>
+            <div class="bar-container health-bar">
+                <div class="bar" id="healthBar" style="width: 100%"></div>
+                <div class="bar-label"><span id="healthText">100</span>/<span id="maxHealthText">100</span></div>
+            </div>
+            <div class="bar-container exp-bar">
+                <div class="bar" id="expBar" style="width: 0%"></div>
+                <div class="bar-label"><span id="expText">0</span>/<span id="expToNextText">100</span></div>
+            </div>
+        </div>
+        
+        <div class="skill-bar" id="skillBar"></div>
+        
+        <div class="controls">
+            <button class="btn" id="gameStartBtn" onclick="startGame()">开始游戏</button>
+            <button class="btn" id="gamePauseBtn" onclick="pauseGame()">暂停</button>
+        </div>
+
+        <button class="player-info-btn" id="playerInfoBtn" onclick="togglePlayerInfo()">ℹ️</button>
+    </div>
+
+    <div class="player-info-panel" id="playerInfoPanel">
+        <button class="close-btn" onclick="togglePlayerInfo()">×</button>
+        <h2>玩家信息</h2>
+        <div class="info-row">
+            <span class="info-label">职业:</span>
+            <span class="info-value" id="infoClass">-</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">等级:</span>
+            <span class="info-value" id="infoLevel">1</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">生命值:</span>
+            <span class="info-value" id="infoHealth">100/100</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">经验值:</span>
+            <span class="info-value" id="infoExp">0/100</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">移动速度:</span>
+            <span class="info-value" id="infoSpeed">5</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">攻击伤害:</span>
+            <span class="info-value" id="infoDamage">50</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">防御力:</span>
+            <span class="info-value" id="infoDefense">0</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">攻击冷却:</span>
+            <span class="info-value" id="infoCooldown">500ms</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">当前波次:</span>
+            <span class="info-value" id="infoWave">1</span>
+        </div>
+    </div>
+
+    <div class="coordinates-display" id="coordinatesDisplay" style="display: none;">X: 0, Y: 0</div>
+
+
+
+    <div class="game-over" id="gameOver">
+        <h2>游戏结束</h2>
+        <p>最终等级: <span id="finalLevel">1</span></p>
+        <button class="btn" onclick="restartGame()">重新开始</button>
+    </div>
+
+    <div class="class-selection" id="classSelection">
+        <h2>选择职业</h2>
+        <div class="class-options">
+            <div class="class-option" onclick="selectClass('warrior')">
+                <h3>战士</h3>
+                <p>200血量<br>近战范围攻击<br>50伤害/次</p>
+            </div>
+            <div class="class-option" onclick="selectClass('mage')">
+                <h3>法师</h3>
+                <p>70血量<br>花式弹幕<br>25伤害/发</p>
+            </div>
+            <div class="class-option" onclick="selectClass('archer')">
+                <h3>射手</h3>
+                <p>100血量<br>快速单发<br>15伤害/发</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="name-registration" id="nameRegistration">
+        <h2>输入角色名称</h2>
+        <div class="name-input-container">
+            <input type="text" id="playerName" placeholder="请输入角色名称" maxlength="20">
+            <button class="btn" onclick="registerName()">确定</button>
+        </div>
+    </div>
+    
+    <div class="admin-panel" id="adminPanel">
+        <div class="admin-header">
+            <h2>管理员控制台</h2>
+            <button class="close-btn" onclick="toggleAdminPanel()">×</button>
+        </div>
+        <div class="admin-content">
+            <div class="admin-section">
+                <h3>玩家数据</h3>
+                <div class="admin-item">
+                    <label>等级:</label>
+                    <input type="number" id="adminLevel" min="1">
+                    <button class="btn-small" onclick="setPlayerLevel()">设置</button>
+                </div>
+                <div class="admin-item">
+                    <label>经验值:</label>
+                    <input type="number" id="adminExp" min="0">
+                    <button class="btn-small" onclick="setPlayerExp()">设置</button>
+                </div>
+                <div class="admin-item">
+                    <label>生命值:</label>
+                    <input type="number" id="adminHealth" min="1">
+                    <button class="btn-small" onclick="setPlayerHealth()">设置</button>
+                </div>
+            </div>
+            
+            <div class="admin-section">
+                <h3>波次数据</h3>
+                <div class="admin-item">
+                    <label>当前波次:</label>
+                    <input type="number" id="adminWave" min="1">
+                    <button class="btn-small" onclick="setWave()">设置</button>
+                </div>
+                <div class="admin-item">
+                    <label>怪物数量:</label>
+                    <input type="number" id="adminMonsterCount" min="1">
+                    <button class="btn-small" onclick="setMonsterCount()">设置</button>
+                </div>
+            </div>
+            
+            <div class="admin-section">
+                <h3>玩家属性</h3>
+                <div class="admin-item">
+                    <label>移动速度:</label>
+                    <input type="number" id="adminSpeed" min="1" step="0.1">
+                    <button class="btn-small" onclick="setPlayerSpeed()">设置</button>
+                </div>
+                <div class="admin-item">
+                    <label>攻击伤害:</label>
+                    <input type="number" id="adminDamage" min="1" step="0.1">
+                    <button class="btn-small" onclick="setPlayerDamage()">设置</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="admin-toggle-btn" id="adminToggleBtn" onclick="toggleAdminPanel()" style="display: none;">
+        管理
+    </div>
+
+    <div class="ability-selection" id="abilitySelection">
+        <h2>选择能力</h2>
+        <div class="ability-container">
+            <div class="ability-card" onclick="selectAbility('speed')">
+                <h3>移动速度</h3>
+                <p>增加移动速度</p>
+            </div>
+            <div class="ability-card" onclick="selectAbility('attackDamage')">
+                <h3 id="abilityAttackDamageTitle">近战伤害</h3>
+                <p id="abilityAttackDamageDesc">增加近战攻击伤害</p>
+            </div>
+            <div class="ability-card" onclick="selectAbility('defense')">
+                <h3 id="abilityDefenseTitle">防御力</h3>
+                <p id="abilityDefenseDesc">减少受到的伤害</p>
+            </div>
+            <div class="ability-card" onclick="selectAbility('health')">
+                <h3>最大生命</h3>
+                <p>增加最大生命值并恢复</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const minimapCanvas = document.getElementById('minimapCanvas');
+        const minimapCtx = minimapCanvas.getContext('2d');
+        const levelElement = document.getElementById('level');
+        const healthBarElement = document.getElementById('healthBar');
+        const healthTextElement = document.getElementById('healthText');
+        const maxHealthTextElement = document.getElementById('maxHealthText');
+        const expBarElement = document.getElementById('expBar');
+        const expTextElement = document.getElementById('expText');
+        const expToNextTextElement = document.getElementById('expToNextText');
+        const waveElement = document.getElementById('wave');
+        const gameOverElement = document.getElementById('gameOver');
+        const finalLevelElement = document.getElementById('finalLevel');
+        const abilitySelectionElement = document.getElementById('abilitySelection');
+        const classSelectionElement = document.getElementById('classSelection');
+        const nameRegistrationElement = document.getElementById('nameRegistration');
+        
+
+
+        let score = 0;
+        let lives = 3;
+        let gameRunning = false;
+        let gamePaused = false;
+        let level = 1;
+        let exp = 0;
+        let expToNextLevel = 100;
+        let abilityPoints = 0;
+        let showAbilitySelection = false;
+        let wave = 1;
+        let waveMonstersRemaining = 0;
+        let waveMonstersSpawned = 0;
+        let waveTotalMonsters = 0;
+        let waveInProgress = false;
+        let waveEliteSpawned = 0;
+        let playerName = '';
+        let isAdmin = false;
+        
+        // 能力库数组
+        const abilityLibrary = [
+            { id: 'speed', name: '移动速度', description: '增加移动速度', effect: () => { player.speed += 1; } },
+            { id: 'attackDamage', name: '近战伤害', description: '增加近战攻击伤害', effect: () => { 
+                if (player.class === 'warrior') {
+                    player.meleeDamage = (player.meleeDamage || 50) + 10;
+                } else {
+                    player.bulletSpeed = (player.bulletSpeed || 10) + 2;
+                }
+            } },
+            { id: 'defense', name: '防御力', description: '减少受到的伤害', effect: () => { 
+                if (player.class === 'warrior') {
+                    player.defense = (player.defense || 0) + 5;
+                } else {
+                    player.bulletSize = (player.bulletSize || 5) + 1;
+                }
+            } },
+            { id: 'health', name: '最大生命', description: '增加最大生命值并恢复', effect: () => { 
+                player.maxHealth += 20;
+                player.health = player.maxHealth;
+            } },
+            // 新增能力
+            { id: 'bulletDamage', name: '子弹伤害', description: '增加子弹伤害5', effect: () => { 
+                if (player.class === 'warrior') {
+                    player.meleeDamage = (player.meleeDamage || 50) + 5;
+                } else {
+                    player.bulletDamage = (player.bulletDamage || 15) + 5;
+                }
+            } },
+            { id: 'defenseBoost', name: '防御提升', description: '增加防御2', effect: () => { 
+                player.defense = (player.defense || 0) + 2;
+            } }
+        ];
+        
+
+        
+        const MAP_WIDTH = 6000; // 地图大小增加到原来的两倍
+        const MAP_HEIGHT = 6000; // 地图大小增加到原来的两倍
+        
+        const camera = {
+            x: 0,
+            y: 0
+        };
+
+        const player = {
+            x: 0,
+            y: 0,
+            size: 20,
+            speed: 5,
+            health: 100,
+            maxHealth: 100,
+            bulletSpeed: 10,
+            bulletSize: 5,
+            isDashing: false,
+            class: 'archer',
+            attackCooldown: 0,
+            attackCooldownMax: 0
+        };
+
+        let monsters = [];
+        let eliteMonsters = [];
+        let bullets = [];
+        let enemyBullets = [];
+        let particles = [];
+        let healthPacks = [];
+        let mouseX = 0;
+        let mouseY = 0;
+        let playerSkills = [];
+        let skillCooldowns = {};
+        let boss = null;
+
+
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            minimapCanvas.width = 200;
+            minimapCanvas.height = 200;
+            player.x = MAP_WIDTH / 2;
+            player.y = MAP_HEIGHT / 2;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+
+
+        class Monster {
+            constructor() {
+                const side = Math.floor(Math.random() * 4);
+                const offset = 100;
+                const spawnRadius = 600;
+                
+                let attempts = 0;
+                const maxAttempts = 50;
+                
+                while (attempts < maxAttempts) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = spawnRadius + Math.random() * 300;
+                    
+                    this.x = player.x + Math.cos(angle) * distance;
+                    this.y = player.y + Math.sin(angle) * distance;
+                    
+                    this.x = Math.max(offset, Math.min(MAP_WIDTH - offset, this.x));
+                    this.y = Math.max(offset, Math.min(MAP_HEIGHT - offset, this.y));
+                    
+                    break;
+                }
+                
+                this.size = Math.random() * 20 + 20 + wave * 0.5;
+                this.speed = Math.random() * 2 + 1 + wave * 0.15;
+                this.type = Math.floor(Math.random() * 4);
+                this.rotation = 0;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.1;
+                this.health = Math.ceil(this.size / 15 + wave * 0.3);
+                this.expValue = Math.ceil(10 + wave * 2);
+                this.lastDamageTime = 0;
+                this.isSummoned = false; // 标记是否为精英怪或boss召唤的怪物
+            }
+
+            update() {
+                const dx = player.x - this.x;
+                const dy = player.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    this.x += (dx / distance) * this.speed;
+                    this.y += (dy / distance) * this.speed;
+                }
+                
+                this.rotation += this.rotationSpeed;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+
+                switch(this.type) {
+                    case 0:
+                        this.drawSquare();
+                        break;
+                    case 1:
+                        this.drawTriangle();
+                        break;
+                    case 2:
+                        this.drawPentagon();
+                        break;
+                    case 3:
+                        this.drawHexagon();
+                        break;
+                }
+
+                ctx.restore();
+            }
+
+            drawSquare() {
+                ctx.strokeRect(-this.size/2, -this.size/2, this.size, this.size);
+                if (this.health > 1) {
+                    ctx.fillStyle = '#fff';
+                    ctx.globalAlpha = 0.3;
+                    ctx.fillRect(-this.size/2, -this.size/2, this.size, this.size);
+                    ctx.globalAlpha = 1;
+                }
+            }
+
+            drawTriangle() {
+                ctx.beginPath();
+                ctx.moveTo(0, -this.size/2);
+                ctx.lineTo(this.size/2, this.size/2);
+                ctx.lineTo(-this.size/2, this.size/2);
+                ctx.closePath();
+                ctx.stroke();
+                if (this.health > 1) {
+                    ctx.fillStyle = '#fff';
+                    ctx.globalAlpha = 0.3;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+            }
+
+            drawPentagon() {
+                ctx.beginPath();
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+                    const x = Math.cos(angle) * this.size/2;
+                    const y = Math.sin(angle) * this.size/2;
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.closePath();
+                ctx.stroke();
+                if (this.health > 1) {
+                    ctx.fillStyle = '#fff';
+                    ctx.globalAlpha = 0.3;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+            }
+
+            drawHexagon() {
+                ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                    const angle = (i * 2 * Math.PI / 6) - Math.PI / 2;
+                    const x = Math.cos(angle) * this.size/2;
+                    const y = Math.sin(angle) * this.size/2;
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.closePath();
+                ctx.stroke();
+                if (this.health > 1) {
+                    ctx.fillStyle = '#fff';
+                    ctx.globalAlpha = 0.3;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+            }
+        }
+
+        class EliteMonster {
+            constructor() {
+                const offset = 150;
+                const spawnRadius = 700;
+                
+                let attempts = 0;
+                const maxAttempts = 50;
+                
+                while (attempts < maxAttempts) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = spawnRadius + Math.random() * 300;
+                    
+                    this.x = player.x + Math.cos(angle) * distance;
+                    this.y = player.y + Math.sin(angle) * distance;
+                    
+                    this.x = Math.max(offset, Math.min(MAP_WIDTH - offset, this.x));
+                    this.y = Math.max(offset, Math.min(MAP_HEIGHT - offset, this.y));
+                    
+                    break;
+                }
+                
+                this.size = 60;
+                this.speed = 1.5 + wave * 0.05;
+                this.health = 20 + wave * 5;
+                this.maxHealth = this.health;
+                this.rotation = 0;
+                this.rotationSpeed = 0.02;
+                this.skillType = Math.floor(Math.random() * 3);
+                this.skillCooldown = 0;
+                this.skillMaxCooldown = 180;
+                this.expValue = 100 + wave * 20;
+                this.dashSpeed = 0;
+                this.dashDirection = { x: 0, y: 0 };
+                this.lastDamageTime = 0;
+            }
+
+            update() {
+                const dx = player.x - this.x;
+                const dy = player.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (this.dashSpeed > 0) {
+                    this.x += this.dashDirection.x * this.dashSpeed;
+                    this.y += this.dashDirection.y * this.dashSpeed;
+                    this.dashSpeed *= 0.95;
+                    if (this.dashSpeed < 0.5) {
+                        this.dashSpeed = 0;
+                    }
+                } else {
+                    if (distance > 0) {
+                        this.x += (dx / distance) * this.speed;
+                        this.y += (dy / distance) * this.speed;
+                    }
+                }
+                
+                this.rotation += this.rotationSpeed;
+                
+                this.skillCooldown--;
+                if (this.skillCooldown <= 0) {
+                    this.useSkill();
+                    this.skillCooldown = this.skillMaxCooldown;
+                }
+            }
+
+            useSkill() {
+                switch(this.skillType) {
+                    case 0:
+                        this.shootSkill();
+                        break;
+                    case 1:
+                        this.dashSkill();
+                        break;
+                    case 2:
+                        this.summonSkill();
+                        break;
+                }
+            }
+
+            shootSkill() {
+                const bulletCount = 8;
+                for (let i = 0; i < bulletCount; i++) {
+                    const angle = (i / bulletCount) * Math.PI * 2;
+                    enemyBullets.push({
+                        x: this.x,
+                        y: this.y,
+                        vx: Math.cos(angle) * 5,
+                        vy: Math.sin(angle) * 5,
+                        size: 8,
+                        life: 120
+                    });
+                }
+            }
+
+            dashSkill() {
+                const dx = player.x - this.x;
+                const dy = player.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    this.dashDirection = {
+                        x: dx / distance,
+                        y: dy / distance
+                    };
+                    this.dashSpeed = 15;
+                }
+            }
+
+            summonSkill() {
+                for (let i = 0; i < 3; i++) {
+                    const monster = new Monster();
+                    monster.x = this.x + (Math.random() - 0.5) * 100;
+                    monster.y = this.y + (Math.random() - 0.5) * 100;
+                    monster.size *= 0.7;
+                    monster.speed *= 1.2;
+                    monster.isSummoned = true;
+                    monsters.push(monster);
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                
+                ctx.beginPath();
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i * 2 * Math.PI / 8) - Math.PI / 2;
+                    const x = Math.cos(angle) * this.size/2;
+                    const y = Math.sin(angle) * this.size/2;
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.closePath();
+                ctx.stroke();
+                
+                ctx.fillStyle = '#fff';
+                ctx.globalAlpha = 0.2;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                
+                ctx.restore();
+                
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(this.x - this.size/2 - 5, this.y - this.size/2 - 15, this.size + 10, 8);
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(this.x - this.size/2 - 5, this.y - this.size/2 - 15, (this.health / this.maxHealth) * (this.size + 10), 8);
+            }
+        }
+
+        class Boss {
+            constructor(waveNum) {
+                this.x = MAP_WIDTH / 2;
+                this.y = MAP_HEIGHT / 2;
+                this.size = 200 + waveNum * 10;
+                this.maxHealth = 500 + waveNum * 100;
+                this.health = this.maxHealth;
+                this.speed = 2 + waveNum * 0.1;
+                this.rotation = 0;
+                this.rotationSpeed = 0.01;
+                this.phase = 1;
+                this.attackCooldown = 0;
+                this.attackMaxCooldown = 60;
+                this.specialCooldown = 0;
+                this.specialMaxCooldown = 300;
+                this.movePattern = 0;
+                this.moveTimer = 0;
+                this.targetX = this.x;
+                this.targetY = this.y;
+                this.isDashing = false;
+                this.dashSpeed = 0;
+                this.dashDirection = { x: 0, y: 0 };
+                this.laserActive = false;
+                this.laserAngle = 0;
+                this.laserTimer = 0;
+                this.summonCooldown = 0;
+                this.expValue = 1000 + waveNum * 200;
+                this.lastDamageTime = 0;
+                this.shieldActive = false;
+                this.shieldHealth = 0;
+                this.shieldMaxHealth = 50 + waveNum * 10;
+                this.waveNum = waveNum;
+            }
+
+            update() {
+                this.rotation += this.rotationSpeed;
+                
+                if (this.isDashing) {
+                    this.x += this.dashDirection.x * this.dashSpeed;
+                    this.y += this.dashDirection.y * this.dashSpeed;
+                    this.dashSpeed *= 0.98;
+                    if (this.dashSpeed < 1) {
+                        this.isDashing = false;
+                        this.dashSpeed = 0;
+                    }
+                } else {
+                    this.movePatternUpdate();
+                }
+
+                this.attackCooldown--;
+                if (this.attackCooldown <= 0) {
+                    this.performAttack();
+                    this.attackCooldown = this.attackMaxCooldown;
+                }
+
+                this.specialCooldown--;
+                if (this.specialCooldown <= 0) {
+                    this.performSpecial();
+                    this.specialCooldown = this.specialMaxCooldown;
+                }
+
+                if (this.laserActive) {
+                    this.laserTimer--;
+                    if (this.laserTimer <= 0) {
+                        this.laserActive = false;
+                    }
+                }
+
+                if (this.shieldActive && this.shieldHealth <= 0) {
+                    this.shieldActive = false;
+                    this.shieldHealth = this.shieldMaxHealth;
+                }
+
+                this.updatePhase();
+            }
+
+            movePatternUpdate() {
+                this.moveTimer++;
+                
+                switch(this.movePattern) {
+                    case 0:
+                        this.circularMovement();
+                        break;
+                    case 1:
+                        this.spiralMovement();
+                        break;
+                    case 2:
+                        this.waveMovement();
+                        break;
+                    case 3:
+                        this.chaseMovement();
+                        break;
+                }
+
+                if (this.moveTimer > 300) {
+                    this.moveTimer = 0;
+                    this.movePattern = (this.movePattern + 1) % 4;
+                }
+            }
+
+            circularMovement() {
+                const centerX = MAP_WIDTH / 2;
+                const centerY = MAP_HEIGHT / 2;
+                const radius = 300;
+                const angle = Date.now() * 0.001;
+                
+                this.targetX = centerX + Math.cos(angle) * radius;
+                this.targetY = centerY + Math.sin(angle) * radius;
+                
+                this.moveToTarget(0.02);
+            }
+
+            spiralMovement() {
+                const centerX = MAP_WIDTH / 2;
+                const centerY = MAP_HEIGHT / 2;
+                const baseRadius = 200;
+                const radiusVariation = Math.sin(this.moveTimer * 0.02) * 100;
+                const angle = Date.now() * 0.002;
+                
+                this.targetX = centerX + Math.cos(angle) * (baseRadius + radiusVariation);
+                this.targetY = centerY + Math.sin(angle) * (baseRadius + radiusVariation);
+                
+                this.moveToTarget(0.03);
+            }
+
+            waveMovement() {
+                const baseX = MAP_WIDTH / 2;
+                const baseY = MAP_HEIGHT / 2;
+                const waveAmplitude = 200;
+                const waveFrequency = 0.02;
+                
+                this.targetX = baseX + Math.sin(this.moveTimer * waveFrequency) * waveAmplitude;
+                this.targetY = baseY + Math.cos(this.moveTimer * waveFrequency * 0.5) * waveAmplitude;
+                
+                this.moveToTarget(0.025);
+            }
+
+            chaseMovement() {
+                this.targetX = player.x;
+                this.targetY = player.y;
+                
+                const dx = this.targetX - this.x;
+                const dy = this.targetY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 300) {
+                    this.x += (dx / distance) * this.speed * 0.5;
+                    this.y += (dy / distance) * this.speed * 0.5;
+                }
+            }
+
+            moveToTarget(speedFactor) {
+                const dx = this.targetX - this.x;
+                const dy = this.targetY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    this.x += (dx / distance) * this.speed * speedFactor * 10;
+                    this.y += (dy / distance) * this.speed * speedFactor * 10;
+                }
+            }
+
+            performAttack() {
+                const attackType = Math.floor(Math.random() * 4);
+                
+                switch(attackType) {
+                    case 0:
+                        this.spreadShot();
+                        break;
+                    case 1:
+                        this.spiralShot();
+                        break;
+                    case 2:
+                        this.targetedShot();
+                        break;
+                    case 3:
+                        this.burstShot();
+                        break;
+                }
+            }
+
+            spreadShot() {
+                const bulletCount = 12 + this.phase * 4;
+                for (let i = 0; i < bulletCount; i++) {
+                    const angle = (i / bulletCount) * Math.PI * 2 + this.rotation;
+                    enemyBullets.push({
+                        x: this.x,
+                        y: this.y,
+                        vx: Math.cos(angle) * 6,
+                        vy: Math.sin(angle) * 6,
+                        size: 10,
+                        life: 180,
+                        damage: 15 + this.phase * 5
+                    });
+                }
+            }
+
+            spiralShot() {
+                const spiralCount = 3;
+                for (let s = 0; s < spiralCount; s++) {
+                    const baseAngle = (s / spiralCount) * Math.PI * 2;
+                    for (let i = 0; i < 8; i++) {
+                        const angle = baseAngle + i * 0.3 + this.rotation;
+                        enemyBullets.push({
+                            x: this.x,
+                            y: this.y,
+                            vx: Math.cos(angle) * 5,
+                            vy: Math.sin(angle) * 5,
+                            size: 8,
+                            life: 150,
+                            damage: 10 + this.phase * 3
+                        });
+                    }
+                }
+            }
+
+            targetedShot() {
+                const dx = player.x - this.x;
+                const dy = player.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    const angle = Math.atan2(dy, dx);
+                    const bulletCount = 5 + this.phase;
+                    
+                    for (let i = 0; i < bulletCount; i++) {
+                        const spreadAngle = angle + (i - Math.floor(bulletCount/2)) * 0.15;
+                        enemyBullets.push({
+                            x: this.x,
+                            y: this.y,
+                            vx: Math.cos(spreadAngle) * 8,
+                            vy: Math.sin(spreadAngle) * 8,
+                            size: 12,
+                            life: 120,
+                            damage: 20 + this.phase * 5
+                        });
+                    }
+                }
+            }
+
+            burstShot() {
+                const burstCount = 3;
+                for (let b = 0; b < burstCount; b++) {
+                    setTimeout(() => {
+                        const dx = player.x - this.x;
+                        const dy = player.y - this.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance > 0) {
+                            const angle = Math.atan2(dy, dx);
+                            for (let i = 0; i < 6; i++) {
+                                const spreadAngle = angle + (i - 2.5) * 0.2;
+                                enemyBullets.push({
+                                    x: this.x,
+                                    y: this.y,
+                                    vx: Math.cos(spreadAngle) * 7,
+                                    vy: Math.sin(spreadAngle) * 7,
+                                    size: 9,
+                                    life: 100,
+                                    damage: 12 + this.phase * 4
+                                });
+                            }
+                        }
+                    }, b * 200);
+                }
+            }
+
+            performSpecial() {
+                const specialType = Math.floor(Math.random() * 4);
+                
+                switch(specialType) {
+                    case 0:
+                        this.laserAttack();
+                        break;
+                    case 1:
+                        this.dashAttack();
+                        break;
+                    case 2:
+                        this.summonMinions();
+                        break;
+                    case 3:
+                        this.activateShield();
+                        break;
+                }
+            }
+
+            laserAttack() {
+                this.laserActive = true;
+                this.laserTimer = 60;
+                
+                const dx = player.x - this.x;
+                const dy = player.y - this.y;
+                this.laserAngle = Math.atan2(dy, dx);
+            }
+
+            dashAttack() {
+                const dx = player.x - this.x;
+                const dy = player.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 0) {
+                    this.dashDirection = {
+                        x: dx / distance,
+                        y: dy / distance
+                    };
+                    this.isDashing = true;
+                    this.dashSpeed = 20;
+                }
+            }
+
+            summonMinions() {
+                const minionCount = 5 + this.phase * 2;
+                for (let i = 0; i < minionCount; i++) {
+                    const monster = new Monster();
+                    monster.x = this.x + (Math.random() - 0.5) * 300;
+                    monster.y = this.y + (Math.random() - 0.5) * 300;
+                    monster.size *= 0.8;
+                    monster.speed *= 1.3;
+                    monster.isSummoned = true;
+                    monsters.push(monster);
+                }
+            }
+
+            activateShield() {
+                this.shieldActive = true;
+                this.shieldHealth = this.shieldMaxHealth;
+            }
+
+            updatePhase() {
+                const healthPercent = this.health / this.maxHealth;
+                
+                if (healthPercent < 0.3 && this.phase < 3) {
+                    this.phase = 3;
+                    this.attackMaxCooldown = 30;
+                    this.specialMaxCooldown = 180;
+                } else if (healthPercent < 0.6 && this.phase < 2) {
+                    this.phase = 2;
+                    this.attackMaxCooldown = 45;
+                    this.specialMaxCooldown = 240;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 4;
+                
+                ctx.beginPath();
+                for (let i = 0; i < 12; i++) {
+                    const angle = (i * 2 * Math.PI / 12) - Math.PI / 2;
+                    const radius = this.size / 2 * (1 + 0.2 * Math.sin(i * 2 + Date.now() * 0.003));
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.closePath();
+                ctx.stroke();
+                
+                ctx.fillStyle = `rgba(255, 255, 255, ${0.15 + 0.05 * Math.sin(Date.now() * 0.005)})`;
+                ctx.fill();
+                
+                ctx.restore();
+                
+                if (this.shieldActive) {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.strokeStyle = `rgba(100, 200, 255, ${0.5 + 0.3 * Math.sin(Date.now() * 0.01)})`;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size / 2 + 20, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+                
+                if (this.laserActive) {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(this.laserAngle);
+                    
+                    ctx.strokeStyle = `rgba(255, 100, 100, ${0.8 + 0.2 * Math.sin(Date.now() * 0.02)})`;
+                    ctx.lineWidth = 20;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(1000, 0);
+                    ctx.stroke();
+                    
+                    ctx.strokeStyle = `rgba(255, 200, 200, ${0.9 + 0.1 * Math.sin(Date.now() * 0.03)})`;
+                    ctx.lineWidth = 10;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(1000, 0);
+                    ctx.stroke();
+                    
+                    ctx.restore();
+                }
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('BOSS', this.x, this.y - this.size / 2 - 30);
+            }
+        }
+
+        class Bullet {
+            constructor(x, y, angle) {
+                this.x = x;
+                this.y = y;
+                this.size = player.bulletSize || 5;
+                this.speed = player.bulletSpeed || 10;
+                this.angle = angle;
+                this.vx = Math.sin(angle) * this.speed;
+                this.vy = -Math.cos(angle) * this.speed;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+
+            draw() {
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, size) {
+                this.x = x;
+                this.y = y;
+                this.size = size;
+                this.speedX = (Math.random() - 0.5) * 6;
+                this.speedY = (Math.random() - 0.5) * 6;
+                this.life = 1;
+                this.decay = Math.random() * 0.02 + 0.02;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life -= this.decay;
+            }
+
+            draw() {
+                ctx.fillStyle = '#fff';
+                ctx.globalAlpha = this.life;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        class HealthPack {
+            constructor() {
+                const offset = 100;
+                this.x = Math.random() * (MAP_WIDTH - 2 * offset) + offset;
+                this.y = Math.random() * (MAP_HEIGHT - 2 * offset) + offset;
+                this.size = 20;
+                this.healAmount = 30;
+                this.pulsePhase = Math.random() * Math.PI * 2;
+            }
+
+            update() {
+                this.pulsePhase += 0.05;
+            }
+
+            draw() {
+                const pulse = 1 + Math.sin(this.pulsePhase) * 0.1;
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.scale(pulse, pulse);
+                
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.fillStyle = '#fff';
+                
+                ctx.beginPath();
+                ctx.moveTo(0, -this.size/2);
+                ctx.lineTo(this.size/2, 0);
+                ctx.lineTo(0, this.size/2);
+                ctx.lineTo(-this.size/2, 0);
+                ctx.closePath();
+                ctx.stroke();
+                
+                ctx.globalAlpha = 0.3;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('+', 0, 0);
+                
+                ctx.restore();
+            }
+        }
+
+        function createExplosion(x, y, count) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, Math.random() * 3 + 2));
+            }
+        }
+
+        function gainExp(amount) {
+            exp += amount;
+            
+            while (exp >= expToNextLevel) {
+                exp -= expToNextLevel;
+                level++;
+                expToNextLevel = Math.floor(100 * Math.pow(level, 1.05));
+                
+                if (level % 2 === 0) {
+                    showAbilitySelection = true;
+                    gamePaused = true;
+                    abilitySelectionElement.style.display = 'block';
+                    
+                    // 从能力库随机抽取三个不重复的能力
+                    const availableAbilities = [...abilityLibrary];
+                    const selectedAbilities = [];
+                    
+                    for (let i = 0; i < 3; i++) {
+                        if (availableAbilities.length === 0) break;
+                        const randomIndex = Math.floor(Math.random() * availableAbilities.length);
+                        selectedAbilities.push(availableAbilities[randomIndex]);
+                        availableAbilities.splice(randomIndex, 1);
+                    }
+                    
+                    // 更新能力选择界面
+                    const abilityCards = document.querySelectorAll('.ability-card');
+                    const abilityContainer = document.querySelector('.ability-container');
+                    
+                    // 清空现有能力卡片
+                    abilityContainer.innerHTML = '';
+                    
+                    // 创建新的能力卡片
+                    selectedAbilities.forEach(ability => {
+                        const abilityCard = document.createElement('div');
+                        abilityCard.className = 'ability-card';
+                        abilityCard.onclick = () => selectAbility(ability.id);
+                        abilityCard.innerHTML = `
+                            <h3>${ability.name}</h3>
+                            <p>${ability.description}</p>
+                        `;
+                        abilityContainer.appendChild(abilityCard);
+                    });
+                }
+            }
+            
+            levelElement.textContent = level;
+            expTextElement.textContent = exp;
+            expToNextTextElement.textContent = expToNextLevel;
+            expBarElement.style.width = (exp / expToNextLevel * 100) + '%';
+        }
+
+        function gainSkill(skillType) {
+            const skillNames = ['弹幕射击', '冲刺', '召唤'];
+            const skillKeys = ['Q', 'R', 'E'];
+            
+            const existingSkill = playerSkills.find(s => s.type === skillType);
+            
+            if (!existingSkill && playerSkills.length < 5) {
+                playerSkills.push({
+                    type: skillType,
+                    name: skillNames[skillType],
+                    key: skillKeys[skillType]
+                });
+                skillCooldowns[skillType] = 0;
+                updateSkillBar();
+            }
+        }
+
+        function updateSkillBar() {
+            const skillBar = document.querySelector('.skill-bar');
+            skillBar.innerHTML = '';
+            
+            if (playerSkills.length === 0) {
+                const emptySlot = document.createElement('div');
+                emptySlot.className = 'skill-slot';
+                emptySlot.style.opacity = '0.3';
+                emptySlot.innerHTML = '<span class="skill-name">无技能</span>';
+                skillBar.appendChild(emptySlot);
+                return;
+            }
+            
+            playerSkills.forEach((skill, index) => {
+                const slot = document.createElement('div');
+                slot.className = 'skill-slot';
+                slot.innerHTML = `
+                    <span class="skill-key">${skill.key}</span>
+                    <span class="skill-name">${skill.name}</span>
+                    <span class="skill-cooldown" id="cooldown-${skill.type}"></span>
+                `;
+                skillBar.appendChild(slot);
+            });
+            
+            console.log('技能栏更新，当前技能数量:', playerSkills.length);
+        }
+
+        function useSkill(skillType) {
+            if (skillCooldowns[skillType] > 0) return;
+            
+            const hasSkill = playerSkills.some(s => s.type === skillType);
+            if (!hasSkill) return;
+            
+            switch(skillType) {
+                case 0:
+                    shootSkill();
+                    break;
+                case 1:
+                    dashSkill();
+                    break;
+                case 2:
+                    summonSkill();
+                    break;
+            }
+            
+            skillCooldowns[skillType] = 300;
+        }
+
+        function shootSkill() {
+            const bulletCount = 12;
+            for (let i = 0; i < bulletCount; i++) {
+                const angle = (i / bulletCount) * Math.PI * 2;
+                const bulletX = player.x + Math.cos(angle) * player.size;
+                const bulletY = player.y + Math.sin(angle) * player.size;
+                bullets.push(new Bullet(bulletX, bulletY, angle + Math.PI / 2));
+            }
+        }
+
+        function dashSkill() {
+            const worldMouseX = mouseX + camera.x;
+            const worldMouseY = mouseY + camera.y;
+            const dx = worldMouseX - player.x;
+            const dy = worldMouseY - player.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 0) {
+                player.isDashing = true;
+                setTimeout(() => {
+                    player.isDashing = false;
+                }, 200);
+                
+                const dashDistance = 200;
+                const dashSteps = 10;
+                const startX = player.x;
+                const startY = player.y;
+                
+                for (let i = 0; i < dashSteps; i++) {
+                    const t = (i + 1) / dashSteps;
+                    const ghostX = startX + (dx / distance) * dashDistance * t;
+                    const ghostY = startY + (dy / distance) * dashDistance * t;
+                    
+                    createDashGhost(ghostX, ghostY, 1 - t * 0.8);
+                }
+                
+                player.x += (dx / distance) * dashDistance;
+                player.y += (dy / distance) * dashDistance;
+                player.x = Math.max(player.size, Math.min(MAP_WIDTH - player.size, player.x));
+                player.y = Math.max(player.size, Math.min(MAP_HEIGHT - player.size, player.y));
+                
+                // 冲刺时立即更新相机位置，让屏幕跟随角色
+                camera.x = player.x - canvas.width / 2;
+                camera.y = player.y - canvas.height / 2;
+                camera.x = Math.max(0, Math.min(MAP_WIDTH - canvas.width, camera.x));
+                camera.y = Math.max(0, Math.min(MAP_HEIGHT - canvas.height, camera.y));
+            }
+        }
+
+        function createDashGhost(x, y, alpha) {
+            particles.push({
+                x: x,
+                y: y,
+                size: player.size,
+                alpha: alpha,
+                decay: 0.05,
+                isGhost: true,
+                update: function() {
+                    this.alpha -= this.decay;
+                    return this.alpha > 0;
+                },
+                draw: function() {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.globalAlpha = this.alpha;
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -this.size/2);
+                    ctx.lineTo(-this.size/2, this.size/2);
+                    ctx.lineTo(0, this.size/4);
+                    ctx.lineTo(this.size/2, this.size/2);
+                    ctx.closePath();
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            });
+        }
+
+        function summonSkill() {
+            for (let i = 0; i < 2; i++) {
+                const monster = new Monster();
+                monster.x = player.x + (Math.random() - 0.5) * 100;
+                monster.y = player.y + (Math.random() - 0.5) * 100;
+                monster.speed *= 0.5;
+                monster.size *= 0.8;
+                monster.isAlly = true;
+                monsters.push(monster);
+            }
+        }
+
+        function spawnHealthPack() {
+            if (gameRunning && !gamePaused && healthPacks.length < 5) {
+                healthPacks.push(new HealthPack());
+            }
+        }
+
+        function selectAbility(abilityId) {
+            // 从能力库中查找对应的能力
+            const ability = abilityLibrary.find(ability => ability.id === abilityId);
+            
+            if (ability) {
+                // 应用能力效果
+                ability.effect();
+            }
+            
+            abilitySelectionElement.style.display = 'none';
+            showAbilitySelection = false;
+            gamePaused = false;
+        }
+
+        function startWave() {
+            waveInProgress = true;
+            
+            if (wave % 10 === 0) {
+                boss = new Boss(wave);
+                waveTotalMonsters = 1;
+                waveMonstersSpawned = 1;
+                waveMonstersRemaining = 1;
+                waveEliteSpawned = 0;
+                waveElement.textContent = wave;
+                updateWaveProgress();
+                showBossHealthUI();
+                updateBossHealthUI();
+                console.log(`开始第 ${wave} 波 - Boss战！`);
+            } else {
+                boss = null;
+                hideBossHealthUI();
+                waveTotalMonsters = 5 + wave * 5;
+                waveMonstersSpawned = 0;
+                waveMonstersRemaining = waveTotalMonsters;
+                waveEliteSpawned = 0;
+                waveElement.textContent = wave;
+                updateWaveProgress();
+                console.log(`开始第 ${wave} 波，总怪物数: ${waveTotalMonsters}`);
+            }
+        }
+
+        function updateWaveProgress() {
+            const progress = ((waveTotalMonsters - waveMonstersRemaining) / waveTotalMonsters) * 100;
+            // 确保进度在0%到100%之间，防止溢出
+            const clampedProgress = Math.max(0, Math.min(100, progress));
+            document.getElementById('waveProgressBar').style.width = clampedProgress + '%';
+            document.getElementById('waveProgressText').textContent = `${waveTotalMonsters - waveMonstersRemaining}/${waveTotalMonsters}`;
+        }
+
+        function nextWave() {
+            wave++;
+            console.log(`准备开始第 ${wave} 波`);
+            startWave();
+        }
+
+        function spawnMonster() {
+            if (gameRunning && !gamePaused && waveInProgress && waveMonstersSpawned < waveTotalMonsters && boss === null) {
+                if (wave >= 3 && waveMonstersSpawned > 0 && waveMonstersSpawned % 5 === 0 && waveEliteSpawned < 2) {
+                    eliteMonsters.push(new EliteMonster());
+                    waveEliteSpawned++;
+                    waveMonstersRemaining++;
+                    waveTotalMonsters++; // 增加总怪物数量，保持与剩余数量同步
+                    console.log(`生成精英怪，波次: ${wave}，精英怪数量: ${waveEliteSpawned}`);
+                } else {
+                    monsters.push(new Monster());
+                    waveMonstersSpawned++;
+                    console.log(`生成怪物 ${waveMonstersSpawned}/${waveTotalMonsters}，波次: ${wave}`);
+                }
+            }
+        }
+
+        function shoot() {
+            if (gameRunning && !gamePaused && player.attackCooldown <= 0) {
+                if (player.class === 'warrior') {
+                    meleeAttack();
+                } else if (player.class === 'mage') {
+                    mageAttack();
+                } else if (player.class === 'archer') {
+                    archerAttack();
+                }
+                player.attackCooldown = player.attackCooldownMax;
+            }
+        }
+
+        function meleeAttack() {
+            const worldMouseX = mouseX + camera.x;
+            const worldMouseY = mouseY + camera.y;
+            const dx = worldMouseX - player.x;
+            const dy = worldMouseY - player.y;
+            const angle = Math.atan2(dy, dx);
+            
+            const attackX = player.x + Math.cos(angle) * player.meleeRange / 2;
+            const attackY = player.y + Math.sin(angle) * player.meleeRange / 2;
+            
+            createExplosion(attackX, attackY, 20);
+            
+            for (let i = eliteMonsters.length - 1; i >= 0; i--) {
+                const elite = eliteMonsters[i];
+                const dx = elite.x - attackX;
+                const dy = elite.y - attackY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < player.meleeRange / 2 + elite.size / 2) {
+                    elite.health -= player.meleeDamage;
+                    createExplosion(elite.x, elite.y, 10);
+                    
+                    if (elite.health <= 0) {
+                        eliteMonsters.splice(i, 1);
+                        gainExp(elite.expValue);
+                        createExplosion(elite.x, elite.y, 30);
+                        gainSkill(elite.skillType);
+                        waveMonstersRemaining--;
+                        updateWaveProgress();
+                        
+                        if (waveMonstersRemaining <= 0 && waveMonstersSpawned >= waveTotalMonsters) {
+                            waveInProgress = false;
+                            console.log(`第 ${wave} 波完成！准备进入下一波...`);
+                            setTimeout(nextWave, 2000);
+                        }
+                    }
+                }
+            }
+            
+            for (let i = monsters.length - 1; i >= 0; i--) {
+                const monster = monsters[i];
+                const dx = monster.x - attackX;
+                const dy = monster.y - attackY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < player.meleeRange / 2 + monster.size / 2) {
+                    monster.health -= player.meleeDamage;
+                    createExplosion(monster.x, monster.y, 8);
+                    
+                    if (monster.health <= 0) {
+                        monsters.splice(i, 1);
+                        gainExp(monster.expValue);
+                        createExplosion(monster.x, monster.y, 15);
+                        waveMonstersRemaining--;
+                        updateWaveProgress();
+                        
+                        if (waveMonstersRemaining <= 0 && waveMonstersSpawned >= waveTotalMonsters) {
+                            waveInProgress = false;
+                            console.log(`第 ${wave} 波完成！准备进入下一波...`);
+                            setTimeout(nextWave, 2000);
+                        }
+                    }
+                }
+            }
+        }
+
+        function mageAttack() {
+            const worldMouseX = mouseX + camera.x;
+            const worldMouseY = mouseY + camera.y;
+            const dx = worldMouseX - player.x;
+            const dy = worldMouseY - player.y;
+            const baseAngle = Math.atan2(dy, dx) + Math.PI / 2;
+            
+            const bulletCount = 5;
+            for (let i = 0; i < bulletCount; i++) {
+                const angle = baseAngle + (i - Math.floor(bulletCount / 2)) * 0.3;
+                const bulletX = player.x + Math.sin(angle) * player.size;
+                const bulletY = player.y - Math.cos(angle) * player.size;
+                
+                const bullet = new Bullet(bulletX, bulletY, angle);
+                bullet.damage = player.bulletDamage;
+                bullets.push(bullet);
+            }
+        }
+
+        function archerAttack() {
+            const worldMouseX = mouseX + camera.x;
+            const worldMouseY = mouseY + camera.y;
+            const dx = worldMouseX - player.x;
+            const dy = worldMouseY - player.y;
+            const angle = Math.atan2(dy, dx) + Math.PI / 2;
+            
+            const bulletX = player.x + Math.sin(angle) * player.size;
+            const bulletY = player.y - Math.cos(angle) * player.size;
+            
+            const bullet = new Bullet(bulletX, bulletY, angle);
+            bullet.damage = player.bulletDamage;
+            bullets.push(bullet);
+        }
+
+        function drawPlayer() {
+            const worldMouseX = mouseX + camera.x;
+            const worldMouseY = mouseY + camera.y;
+            const dx = worldMouseX - player.x;
+            const dy = worldMouseY - player.y;
+            const angle = Math.atan2(dy, dx) + Math.PI / 2;
+            
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            ctx.rotate(angle);
+            
+            if (player.class === 'warrior') {
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                
+                ctx.beginPath();
+                ctx.moveTo(0, -player.size/2);
+                ctx.lineTo(-player.size/2, player.size/2);
+                ctx.lineTo(0, player.size/4);
+                ctx.lineTo(player.size/2, player.size/2);
+                ctx.closePath();
+                ctx.stroke();
+            } else {
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                
+                ctx.beginPath();
+                ctx.moveTo(0, -player.size/2);
+                ctx.lineTo(-player.size/2, player.size/2);
+                ctx.lineTo(0, player.size/4);
+                ctx.lineTo(player.size/2, player.size/2);
+                ctx.closePath();
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        }
+
+        function update() {
+            if (!gameRunning || gamePaused) return;
+
+            updatePlayer();
+
+            if (player.attackCooldown > 0) {
+                player.attackCooldown--;
+            }
+
+            Object.keys(skillCooldowns).forEach(skillType => {
+                if (skillCooldowns[skillType] > 0) {
+                    skillCooldowns[skillType]--;
+                    const cooldownElement = document.getElementById(`cooldown-${skillType}`);
+                    if (cooldownElement) {
+                        cooldownElement.textContent = Math.ceil(skillCooldowns[skillType] / 60);
+                    }
+                }
+            });
+
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const bullet = bullets[i];
+                bullet.update();
+                if (bullet.x < 0 || bullet.x > MAP_WIDTH || bullet.y < 0 || bullet.y > MAP_HEIGHT) {
+                    console.log(`子弹超出边界被删除: (${bullet.x.toFixed(0)}, ${bullet.y.toFixed(0)})`);
+                    bullets.splice(i, 1);
+                    continue;
+                }
+                
+                let bulletHit = false;
+                
+                for (let j = eliteMonsters.length - 1; j >= 0; j--) {
+                    const elite = eliteMonsters[j];
+                    const dx = bullet.x - elite.x;
+                    const dy = bullet.y - elite.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < elite.size/2 + bullet.size) {
+                        elite.health -= bullet.damage || 1;
+                        createExplosion(elite.x, elite.y, 8);
+                        bulletHit = true;
+                        console.log(`子弹击中精英怪，精英怪剩余血量: ${elite.health}`);
+                        
+                        if (elite.health <= 0) {
+                            eliteMonsters.splice(j, 1);
+                            gainExp(elite.expValue);
+                            createExplosion(elite.x, elite.y, 30);
+                            gainSkill(elite.skillType);
+                            waveMonstersRemaining--;
+                            updateWaveProgress();
+                            
+                            if (waveMonstersRemaining <= 0 && waveMonstersSpawned >= waveTotalMonsters) {
+                                waveInProgress = false;
+                                console.log(`第 ${wave} 波完成！准备进入下一波...`);
+                                setTimeout(nextWave, 2000);
+                            }
+                        }
+                        break;
+                    }
+                }
+                
+                if (bulletHit) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+                
+                for (let j = monsters.length - 1; j >= 0; j--) {
+                    const monster = monsters[j];
+                    const dx = bullet.x - monster.x;
+                    const dy = bullet.y - monster.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < monster.size/2 + bullet.size) {
+                        monster.health -= bullet.damage || 1;
+                        createExplosion(monster.x, monster.y, 5);
+                        bulletHit = true;
+                        console.log(`子弹击中怪物，怪物剩余血量: ${monster.health}，距离: ${distance.toFixed(2)}`);
+                        
+                        if (monster.health <= 0) {
+                            monsters.splice(j, 1);
+                            gainExp(monster.expValue);
+                            createExplosion(monster.x, monster.y, 15);
+                            
+                            if (!monster.isSummoned) {
+                                waveMonstersRemaining--;
+                                updateWaveProgress();
+                                
+                                if (waveMonstersRemaining <= 0 && waveMonstersSpawned >= waveTotalMonsters) {
+                                    waveInProgress = false;
+                                    console.log(`第 ${wave} 波完成！准备进入下一波...`);
+                                    setTimeout(nextWave, 2000);
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+                
+                if (bulletHit) {
+                    bullets.splice(i, 1);
+                }
+            }
+
+            for (let i = eliteMonsters.length - 1; i >= 0; i--) {
+                const elite = eliteMonsters[i];
+                elite.update();
+                
+                const playerDx = player.x - elite.x;
+                const playerDy = player.y - elite.y;
+                const playerDistance = Math.sqrt(playerDx * playerDx + playerDy * playerDy);
+                
+                if (playerDistance < elite.size/2 + player.size/2) {
+                    const currentTime = Date.now();
+                    if (currentTime - elite.lastDamageTime > 1000) {
+                        const damage = Math.max(5, 30 - (player.defense || 0));
+                        player.health -= damage;
+                        elite.lastDamageTime = currentTime;
+                        createExplosion(elite.x, elite.y, 15);
+                        updateHealthUI();
+                        eliteMonsters.splice(i, 1);
+                        waveMonstersRemaining--;
+                        updateWaveProgress();
+                        if (player.health <= 0) {
+                            gameOver();
+                        }
+                    }
+                }
+            }
+
+            for (let i = monsters.length - 1; i >= 0; i--) {
+                const monster = monsters[i];
+                monster.update();
+                
+                if (!monster.isAlly) {
+                    const playerDx = player.x - monster.x;
+                    const playerDy = player.y - monster.y;
+                    const playerDistance = Math.sqrt(playerDx * playerDx + playerDy * playerDy);
+                    
+                    if (playerDistance < monster.size/2 + player.size/2) {
+                        const currentTime = Date.now();
+                        if (currentTime - monster.lastDamageTime > 1000) {
+                            const damage = Math.max(5, 20 - (player.defense || 0));
+                            player.health -= damage;
+                            monster.lastDamageTime = currentTime;
+                            createExplosion(monster.x, monster.y, 10);
+                            updateHealthUI();
+                            
+                            monsters.splice(i, 1);
+                            
+                            if (!monster.isSummoned) {
+                                waveMonstersRemaining--;
+                                updateWaveProgress();
+                            }
+                            
+                            if (player.health <= 0) {
+                                gameOver();
+                            }
+                        }
+                    }
+                }
+            }
+
+            enemyBullets.forEach((bullet, index) => {
+                const newX = bullet.x + bullet.vx;
+                const newY = bullet.y + bullet.vy;
+                bullet.life--;
+                
+                if (bullet.life <= 0 || bullet.x < 0 || bullet.x > MAP_WIDTH || bullet.y < 0 || bullet.y > MAP_HEIGHT) {
+                    enemyBullets.splice(index, 1);
+                    return;
+                }
+                
+                bullet.x = newX;
+                bullet.y = newY;
+                
+                const dx = bullet.x - player.x;
+                const dy = bullet.y - player.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < bullet.size + player.size/2) {
+                    const damage = Math.max(3, 10 - (player.defense || 0));
+                    player.health -= damage;
+                    enemyBullets.splice(index, 1);
+                    createExplosion(bullet.x, bullet.y, 5);
+                    updateHealthUI();
+                    if (player.health <= 0) {
+                        gameOver();
+                    }
+                }
+            });
+
+            if (boss !== null) {
+                boss.update();
+                
+                const playerDx = player.x - boss.x;
+                const playerDy = player.y - boss.y;
+                const playerDistance = Math.sqrt(playerDx * playerDx + playerDy * playerDy);
+                
+                if (playerDistance < boss.size/2 + player.size/2) {
+                    const currentTime = Date.now();
+                    if (currentTime - boss.lastDamageTime > 1000) {
+                        const damage = Math.max(10, 50 - (player.defense || 0));
+                        player.health -= damage;
+                        boss.lastDamageTime = currentTime;
+                        createExplosion(boss.x, boss.y, 20);
+                        updateHealthUI();
+                        if (player.health <= 0) {
+                            gameOver();
+                        }
+                    }
+                }
+                
+                for (let i = bullets.length - 1; i >= 0; i--) {
+                    const bullet = bullets[i];
+                    const dx = bullet.x - boss.x;
+                    const dy = bullet.y - boss.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < boss.size/2 + bullet.size) {
+                        if (boss.shieldActive) {
+                            boss.shieldHealth -= bullet.damage || 1;
+                            if (boss.shieldHealth <= 0) {
+                                boss.shieldActive = false;
+                            }
+                        } else {
+                            boss.health -= bullet.damage || 1;
+                        }
+                        createExplosion(boss.x, boss.y, 10);
+                        bullets.splice(i, 1);
+                        
+                        updateBossHealthUI();
+                        
+                        if (boss.health <= 0) {
+                            bossDeath();
+                        }
+                        break;
+                    }
+                }
+            }
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                if (particle.isGhost) {
+                    if (!particle.update()) {
+                        particles.splice(i, 1);
+                    }
+                } else {
+                    particle.update();
+                    if (particle.life <= 0) {
+                        particles.splice(i, 1);
+                    }
+                }
+            }
+
+            healthPacks.forEach((pack, index) => {
+                pack.update();
+                
+                const dx = player.x - pack.x;
+                const dy = player.y - pack.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < player.size/2 + pack.size/2) {
+                    player.health = Math.min(player.health + pack.healAmount, player.maxHealth);
+                    healthPacks.splice(index, 1);
+                    updateHealthUI();
+                    createExplosion(pack.x, pack.y, 10);
+                }
+            });
+        }
+
+        function updateHealthUI() {
+            healthBarElement.style.width = (player.health / player.maxHealth * 100) + '%';
+            healthTextElement.textContent = player.health;
+            maxHealthTextElement.textContent = player.maxHealth;
+        }
+
+        function updateBossHealthUI() {
+            if (boss !== null) {
+                const healthPercent = boss.health / boss.maxHealth * 100;
+                document.getElementById('bossHealthBar').style.width = healthPercent + '%';
+                document.getElementById('bossHealthText').textContent = Math.floor(boss.health);
+                document.getElementById('bossMaxHealthText').textContent = boss.maxHealth;
+            }
+        }
+
+        function showBossHealthUI() {
+            document.getElementById('bossHealthContainer').style.display = 'flex';
+        }
+
+        function hideBossHealthUI() {
+            document.getElementById('bossHealthContainer').style.display = 'none';
+        }
+
+        function bossDeath() {
+            const bossX = boss.x;
+            const bossY = boss.y;
+            boss = null;
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const angle = (i * 2 * Math.PI / 50) - Math.PI / 2;
+                    const distance = 100 + Math.random() * 150;
+                    createExplosion(
+                        bossX + Math.cos(angle) * distance,
+                        bossY + Math.sin(angle) * distance,
+                        20 + Math.random() * 30
+                    );
+                }, i * 20);
+            }
+            
+            setTimeout(() => {
+                const deathElement = document.createElement('div');
+                deathElement.style.position = 'fixed';
+                deathElement.style.top = '50%';
+                deathElement.style.left = '50%';
+                deathElement.style.transform = 'translate(-50%, -50%)';
+                deathElement.style.color = '#fff';
+                deathElement.style.fontSize = '72px';
+                deathElement.style.fontWeight = 'bold';
+                deathElement.style.zIndex = '1000';
+                deathElement.style.textShadow = '0 0 20px #fff';
+                deathElement.textContent = 'BOSS DEFEATED!';
+                document.body.appendChild(deathElement);
+                
+                player.health = player.maxHealth;
+                updateHealthUI();
+                
+                setTimeout(() => {
+                    document.body.removeChild(deathElement);
+                    hideBossHealthUI();
+                    waveMonstersRemaining--;
+                    updateWaveProgress();
+                    
+                    for (let i = 0; i < 3; i++) {
+                        setTimeout(() => {
+                            gainSkill();
+                        }, i * 1000);
+                    }
+                    
+                    setTimeout(() => {
+                        waveInProgress = false;
+                        console.log(`第 ${wave} 波Boss被击败！准备进入下一波...`);
+                        setTimeout(nextWave, 2000);
+                    }, 3500);
+                }, 2000);
+            }, 500);
+        }
+
+        function togglePlayerInfo() {
+            const panel = document.getElementById('playerInfoPanel');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+                updatePlayerInfo();
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        function updatePlayerInfo() {
+            const classNames = {
+                'warrior': '战士',
+                'mage': '法师',
+                'archer': '射手'
+            };
+            
+            document.getElementById('infoClass').textContent = classNames[player.class] || '-';
+            document.getElementById('infoLevel').textContent = level;
+            document.getElementById('infoHealth').textContent = `${player.health}/${player.maxHealth}`;
+            document.getElementById('infoExp').textContent = `${exp}/${expToNextLevel}`;
+            document.getElementById('infoSpeed').textContent = player.speed;
+            
+            if (player.class === 'warrior') {
+                document.getElementById('infoDamage').textContent = player.meleeDamage;
+                document.getElementById('infoCooldown').textContent = `${player.attackCooldownMax * 16.67}ms`;
+            } else {
+                document.getElementById('infoDamage').textContent = player.bulletDamage;
+                document.getElementById('infoCooldown').textContent = `${player.attackCooldownMax * 16.67}ms`;
+            }
+            
+            document.getElementById('infoDefense').textContent = player.defense || 0;
+            document.getElementById('infoWave').textContent = wave;
+        }
+
+        function updateCoordinates() {
+            const centerX = Math.floor(MAP_WIDTH / 2);
+            const centerY = Math.floor(MAP_HEIGHT / 2);
+            const relativeX = Math.floor(player.x - centerX);
+            const relativeY = Math.floor(player.y - centerY);
+            document.getElementById('coordinatesDisplay').textContent = `X: ${relativeX}, Y: ${relativeY}`;
+        }
+
+        // 添加鼠标移动事件处理
+        window.addEventListener('mousemove', function(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function drawMinimap() {
+            const scale = 200 / MAP_WIDTH;
+            
+            minimapCtx.fillStyle = '#000';
+            minimapCtx.fillRect(0, 0, 200, 200);
+            
+            minimapCtx.strokeStyle = '#fff';
+            minimapCtx.lineWidth = 1;
+            minimapCtx.strokeRect(0, 0, 200, 200);
+            
+            minimapCtx.fillStyle = '#fff';
+            minimapCtx.beginPath();
+            minimapCtx.arc(player.x * scale, player.y * scale, 3, 0, Math.PI * 2);
+            minimapCtx.fill();
+            
+            minimapCtx.fillStyle = '#888';
+            monsters.forEach(monster => {
+                minimapCtx.beginPath();
+                minimapCtx.arc(monster.x * scale, monster.y * scale, 2, 0, Math.PI * 2);
+                minimapCtx.fill();
+            });
+            
+            minimapCtx.fillStyle = '#0f0';
+            healthPacks.forEach(pack => {
+                minimapCtx.beginPath();
+                minimapCtx.arc(pack.x * scale, pack.y * scale, 2, 0, Math.PI * 2);
+                minimapCtx.fill();
+            });
+            
+            minimapCtx.strokeStyle = '#444';
+            minimapCtx.lineWidth = 1;
+            minimapCtx.strokeRect(camera.x * scale, camera.y * scale, canvas.width * scale, canvas.height * scale);
+        }
+
+        function drawBackground() {
+            ctx.save();
+            
+            const gridSize = 100;
+            const offsetX = camera.x % gridSize;
+            const offsetY = camera.y % gridSize;
+            
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 1;
+            
+            for (let x = -offsetX; x < canvas.width + gridSize; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let y = -offsetY; y < canvas.height + gridSize; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            const time = Date.now() * 0.0005;
+            
+            for (let i = 0; i < 30; i++) {
+                const x = (i * 137 + time * 20) % MAP_WIDTH;
+                const y = (i * 89 + time * 15) % MAP_HEIGHT;
+                const size = 2 + Math.sin(time + i) * 1;
+                const alpha = 0.1 + Math.sin(time * 2 + i) * 0.05;
+                
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            for (let i = 0; i < 15; i++) {
+                const x = (i * 173 + time * 10) % MAP_WIDTH;
+                const y = (i * 113 + time * 8) % MAP_HEIGHT;
+                const size = 3 + Math.cos(time * 0.7 + i) * 1.5;
+                const alpha = 0.08 + Math.cos(time * 1.5 + i) * 0.04;
+                
+                ctx.fillStyle = `rgba(150, 150, 150, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            for (let i = 0; i < 8; i++) {
+                const x = (i * 211 + time * 5) % MAP_WIDTH;
+                const y = (i * 157 + time * 4) % MAP_HEIGHT;
+                const size = 4 + Math.sin(time * 0.5 + i) * 2;
+                const alpha = 0.05 + Math.sin(time + i) * 0.02;
+                
+                ctx.fillStyle = `rgba(100, 100, 100, ${alpha})`;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            ctx.restore();
+        }
+
+        function drawMapEdge() {
+            ctx.save();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 3;
+            
+            ctx.beginPath();
+            
+            const time = Date.now() * 0.001;
+            const waveCount = 20;
+            const waveAmplitude = 10;
+            
+            for (let x = 0; x <= MAP_WIDTH; x += MAP_WIDTH / waveCount) {
+                const y = waveAmplitude * Math.sin(x / 50 + time);
+                if (x === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            for (let y = 0; y <= MAP_HEIGHT; y += MAP_HEIGHT / waveCount) {
+                const x = MAP_WIDTH + waveAmplitude * Math.sin(y / 50 + time + Math.PI/2);
+                ctx.lineTo(x, y);
+            }
+            
+            for (let x = MAP_WIDTH; x >= 0; x -= MAP_WIDTH / waveCount) {
+                const y = MAP_HEIGHT + waveAmplitude * Math.sin(x / 50 + time + Math.PI);
+                ctx.lineTo(x, y);
+            }
+            
+            for (let y = MAP_HEIGHT; y >= 0; y -= MAP_HEIGHT / waveCount) {
+                const x = waveAmplitude * Math.sin(y / 50 + time + 3*Math.PI/2);
+                ctx.lineTo(x, y);
+            }
+            
+            ctx.closePath();
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function draw() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 如果开始界面可见，绘制左侧主角，不绘制游戏内容
+            const startScreen = document.getElementById('startScreen');
+            if (startScreen.classList.contains('visible')) {
+                drawStartCharacter();
+                return; // 不绘制游戏内容
+            }
+            
+            // 游戏进行中，绘制背景
+            drawBackground();
+            
+            // 游戏进行中，绘制游戏内容
+            ctx.save();
+            
+            ctx.translate(-camera.x, -camera.y);
+
+            drawMapEdge();
+            drawPlayer();
+            monsters.forEach(monster => monster.draw());
+            eliteMonsters.forEach(elite => elite.draw());
+            if (boss !== null) {
+                boss.draw();
+            }
+            bullets.forEach(bullet => bullet.draw());
+            particles.forEach(particle => particle.draw());
+            healthPacks.forEach(pack => pack.draw());
+            
+            ctx.restore();
+            
+            drawMinimap();
+        }
+
+        // 绘制开始界面左侧的主角
+        function drawStartCharacter() {
+            const startCharacter = document.getElementById('startCharacter');
+            const rect = startCharacter.getBoundingClientRect();
+            
+            // 计算主角位置和面向鼠标的角度
+            const characterX = rect.left + rect.width / 2;
+            const characterY = rect.top + rect.height / 2;
+            
+            // 修复角度计算，确保角色正确面向鼠标
+            const dx = mouseX - characterX;
+            const dy = mouseY - characterY;
+            const angle = Math.atan2(dy, dx);
+            
+            ctx.save();
+            ctx.translate(characterX, characterY);
+            ctx.rotate(angle);
+            
+            // 绘制几何图形主角（三角形）
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.moveTo(0, -30);
+            ctx.lineTo(-20, 30);
+            ctx.lineTo(20, 30);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 绘制边框
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.restore();
+        }
+
+        function gameLoop() {
+            // 如果开始界面可见，不更新游戏状态
+            const startScreen = document.getElementById('startScreen');
+            if (!startScreen.classList.contains('visible') && gameRunning && !gamePaused) {
+                update();
+                updateCoordinates();
+            }
+            
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function startGame() {
+            // 如果游戏暂停状态，继续游戏
+            if (gameRunning && gamePaused) {
+                gamePaused = false;
+                document.getElementById('gameStartBtn').textContent = '开始游戏';
+                hideStartScreen();
+                return;
+            }
+            
+            // 开始新游戏
+            if (gameRunning) return;
+            
+            // 隐藏开始界面，显示游戏内容
+            hideStartScreen();
+            
+            // 显示角色名称输入界面
+            setTimeout(() => {
+                nameRegistrationElement.style.display = 'flex';
+            }, 1000);
+        }
+
+        // 隐藏开始界面并显示游戏内容
+        function hideStartScreen() {
+            const startScreen = document.getElementById('startScreen');
+            const startOverlay = document.getElementById('startOverlay');
+            const startCharacter = document.getElementById('startCharacter');
+            const gameContent = document.getElementById('gameContent');
+            const coordinatesDisplay = document.getElementById('coordinatesDisplay');
+            const minimapCanvas = document.getElementById('minimapCanvas');
+            
+            // 主角移动到屏幕中央
+            startCharacter.style.left = '50%';
+            startCharacter.style.transform = 'translate(-50%, -50%)';
+            startCharacter.style.opacity = '0';
+            
+            // 蒙版和标题移出屏幕
+            startOverlay.style.transform = 'translateX(100%)';
+            
+            // 显示游戏内容
+            setTimeout(() => {
+                gameContent.classList.add('visible');
+                startScreen.classList.remove('visible');
+                
+                // 显示地图和坐标
+                minimapCanvas.style.display = 'block';
+                coordinatesDisplay.style.display = 'block';
+                
+                // 隐藏游戏进行时不必要的UI元素
+                document.getElementById('gameStartBtn').style.display = 'none';
+                document.getElementById('playerInfoBtn').style.display = 'none';
+            }, 500);
+        }
+
+        // 显示开始界面
+        function showStartScreen(isPaused = false) {
+            const startScreen = document.getElementById('startScreen');
+            const startOverlay = document.getElementById('startOverlay');
+            const startCharacter = document.getElementById('startCharacter');
+            const gameContent = document.getElementById('gameContent');
+            const startGameBtn = document.getElementById('startGameBtn');
+            const coordinatesDisplay = document.getElementById('coordinatesDisplay');
+            const minimapCanvas = document.getElementById('minimapCanvas');
+            
+            // 隐藏游戏内容、地图和坐标
+            gameContent.classList.remove('visible');
+            coordinatesDisplay.style.display = 'none';
+            minimapCanvas.style.display = 'none';
+            
+            // 如果是暂停状态，修改按钮文本
+            if (isPaused) {
+                startGameBtn.textContent = '继续游戏';
+                startScreen.classList.add('paused'); // 添加暂停类，启用悬停效果
+            } else {
+                startGameBtn.textContent = '开始游戏';
+                startScreen.classList.remove('paused'); // 移除暂停类，禁用悬停效果
+            }
+            
+            // 重置开始界面元素位置
+            startScreen.classList.add('visible');
+            startOverlay.style.transform = 'translateX(0)';
+            startCharacter.style.left = '20%';
+            startCharacter.style.transform = 'translateY(-50%)';
+            startCharacter.style.opacity = '1';
+            
+            // 更新角色信息（如果是暂停状态且有玩家名称）
+            updateCharacterInfo(isPaused);
+        }
+
+        // 打开设置界面（占位函数）
+        function openSettings() {
+            alert('设置功能开发中...');
+        }
+
+        // 更新角色信息显示
+        function updateCharacterInfo(isPaused = false) {
+            const characterInfo = document.querySelector('.character-info');
+            const characterName = characterInfo.querySelector('h3');
+            const characterStats = characterInfo.querySelectorAll('p');
+            
+            // 根据游戏状态决定是否显示角色信息
+            if (!isPaused) {
+                // 如果不是暂停状态，不显示任何信息
+                characterInfo.style.display = 'none';
+                return;
+            }
+            
+            // 显示角色信息
+            characterInfo.style.display = 'block';
+            
+            // 更新角色名称为玩家输入的名称
+            characterName.textContent = playerName || '几何战士';
+            
+            // 清空现有属性
+            characterStats.forEach(stat => stat.remove());
+            
+            // 添加更丰富的角色属性
+            const stats = [
+                { name: '生命值', value: `${player.health}/${player.maxHealth}` },
+                { name: '攻击力', value: player.class === 'warrior' ? player.meleeDamage : player.bulletDamage },
+                { name: '移动速度', value: player.speed },
+                { name: '防御力', value: player.defense || 0 },
+                { name: '等级', value: level },
+                { name: '职业', value: getPlayerClassText(player.class) },
+                { name: '攻击速度', value: `${Math.round(1000 / player.attackCooldownMax)}次/秒` }
+            ];
+            
+            stats.forEach(stat => {
+                const p = document.createElement('p');
+                p.textContent = `${stat.name}: ${stat.value}`;
+                characterInfo.appendChild(p);
+            });
+        }
+
+        // 获取玩家职业的中文名称
+        function getPlayerClassText(playerClass) {
+            switch(playerClass) {
+                case 'warrior': return '战士';
+                case 'mage': return '法师';
+                case 'archer': return '射手';
+                default: return '未知';
+            }
+        }
+
+        function registerName() {
+            const nameInput = document.getElementById('playerName');
+            const name = nameInput.value.trim();
+            
+            if (name === '') {
+                alert('请输入角色名称');
+                return;
+            }
+            
+            playerName = name;
+            isAdmin = (name.toLowerCase() === 'admin');
+            
+            nameRegistrationElement.style.display = 'none';
+            classSelectionElement.style.display = 'block';
+            
+            if (isAdmin) {
+                document.getElementById('adminToggleBtn').style.display = 'block';
+            } else {
+                document.getElementById('adminToggleBtn').style.display = 'none';
+            }
+            
+            console.log(`玩家名称: ${playerName}, 管理员模式: ${isAdmin}`);
+        }
+
+        function toggleAdminPanel() {
+            const panel = document.getElementById('adminPanel');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+                populateAdminPanel();
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        function populateAdminPanel() {
+            document.getElementById('adminLevel').value = level;
+            document.getElementById('adminExp').value = exp;
+            document.getElementById('adminHealth').value = player.health;
+            document.getElementById('adminWave').value = wave;
+            document.getElementById('adminMonsterCount').value = waveTotalMonsters;
+            document.getElementById('adminSpeed').value = player.speed;
+            
+            if (player.class === 'warrior') {
+                document.getElementById('adminDamage').value = player.meleeDamage;
+            } else {
+                document.getElementById('adminDamage').value = player.bulletDamage;
+            }
+        }
+
+        function setPlayerLevel() {
+            const newLevel = parseInt(document.getElementById('adminLevel').value);
+            if (!isNaN(newLevel) && newLevel >= 1) {
+                level = newLevel;
+                expToNextLevel = Math.floor(100 * Math.pow(1.5, level - 1));
+                updateHealthUI();
+            }
+        }
+
+        function setPlayerExp() {
+            const newExp = parseInt(document.getElementById('adminExp').value);
+            if (!isNaN(newExp) && newExp >= 0) {
+                exp = newExp;
+                expTextElement.textContent = exp;
+                expToNextTextElement.textContent = expToNextLevel;
+            }
+        }
+
+        function setPlayerHealth() {
+            const newHealth = parseInt(document.getElementById('adminHealth').value);
+            if (!isNaN(newHealth) && newHealth >= 1) {
+                player.health = newHealth;
+                player.maxHealth = newHealth;
+                updateHealthUI();
+            }
+        }
+
+        function setWave() {
+            const newWave = parseInt(document.getElementById('adminWave').value);
+            if (!isNaN(newWave) && newWave >= 1) {
+                wave = newWave;
+                waveElement.textContent = wave;
+            }
+        }
+
+        function setMonsterCount() {
+            const newCount = parseInt(document.getElementById('adminMonsterCount').value);
+            if (!isNaN(newCount) && newCount >= 1) {
+                waveTotalMonsters = newCount;
+            }
+        }
+
+        function setPlayerSpeed() {
+            const newSpeed = parseFloat(document.getElementById('adminSpeed').value);
+            if (!isNaN(newSpeed) && newSpeed >= 1) {
+                player.speed = newSpeed;
+            }
+        }
+
+        function setPlayerDamage() {
+            const newDamage = parseFloat(document.getElementById('adminDamage').value);
+            if (!isNaN(newDamage) && newDamage >= 1) {
+                if (player.class === 'warrior') {
+                    player.meleeDamage = newDamage;
+                } else {
+                    player.bulletDamage = newDamage;
+                }
+            }
+        }
+
+        function selectClass(classType) {
+            classSelectionElement.style.display = 'none';
+            
+            level = 1;
+            exp = 0;
+            expToNextLevel = 100;
+            wave = 1;
+            player.class = classType;
+            
+            if (classType === 'warrior') {
+                player.maxHealth = 200;
+                player.health = 200;
+                player.speed = 7;
+                player.attackCooldownMax = 30;
+                player.meleeDamage = 50;
+                player.meleeRange = 80;
+                player.defense = 0;
+            } else if (classType === 'mage') {
+                player.maxHealth = 70;
+                player.health = 70;
+                player.speed = 6;
+                player.bulletSpeed = 12;
+                player.bulletSize = 5;
+                player.attackCooldownMax = 45;
+                player.bulletDamage = 25;
+            } else if (classType === 'archer') {
+                player.maxHealth = 100;
+                player.health = 100;
+                player.speed = 9;
+                player.bulletSpeed = 14;
+                player.bulletSize = 4;
+                player.attackCooldownMax = 8;
+                player.bulletDamage = 15;
+            }
+            
+            levelElement.textContent = level;
+            expTextElement.textContent = exp;
+            expToNextTextElement.textContent = expToNextLevel;
+            waveElement.textContent = wave;
+            updateHealthUI();
+            
+            monsters = [];
+            bullets = [];
+            particles = [];
+            eliteMonsters = [];
+            enemyBullets = [];
+            healthPacks = [];
+            playerSkills = [];
+            skillCooldowns = {};
+            boss = null;
+            
+            gameRunning = true;
+            gamePaused = false;
+            gameOverElement.style.display = 'none';
+            abilitySelectionElement.style.display = 'none';
+            
+            // 在游戏进行中隐藏个人信息按钮
+            document.getElementById('playerInfoBtn').style.display = 'none';
+            // 确保个人信息面板也隐藏
+            document.getElementById('playerInfoPanel').style.display = 'none';
+            
+            updateSkillBar();
+            
+            startWave();
+        }
+
+        function pauseGame() {
+            if (gameRunning) {
+                gamePaused = !gamePaused;
+                
+                if (gamePaused) {
+                    // 显示开始界面（暂停状态）
+                    showStartScreen(true);
+                } else {
+                    // 隐藏开始界面，继续游戏
+                    hideStartScreen();
+                }
+            }
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            finalLevelElement.textContent = level;
+            gameOverElement.style.display = 'block';
+            document.getElementById('playerInfoBtn').style.display = 'none';
+            document.getElementById('playerInfoPanel').style.display = 'none';
+            
+            // 显示开始界面
+            showStartScreen();
+        }
+
+        function restartGame() {
+            gameOverElement.style.display = 'none';
+            document.getElementById('playerInfoBtn').style.display = 'none';
+            startGame();
+        }
+
+        const keys = {};
+
+        document.addEventListener('keydown', (e) => {
+            keys[e.key.toLowerCase()] = true;
+            
+            if (e.key.toLowerCase() === 'q') {
+                useSkill(0);
+            } else if (e.key.toLowerCase() === 'r') {
+                useSkill(1);
+            } else if (e.key.toLowerCase() === 'e') {
+                useSkill(2);
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        document.addEventListener('mousedown', (e) => {
+            if (e.button === 0) {
+                shoot();
+            }
+        });
+
+        function updatePlayer() {
+            if (player.isDashing) return;
+            
+            let newX = player.x;
+            let newY = player.y;
+            
+            if (keys['w'] && player.y > 0) {
+                newY -= player.speed;
+            }
+            if (keys['s'] && player.y < MAP_HEIGHT) {
+                newY += player.speed;
+            }
+            if (keys['a'] && player.x > 0) {
+                newX -= player.speed;
+            }
+            if (keys['d'] && player.x < MAP_WIDTH) {
+                newX += player.speed;
+            }
+            
+            // 确保玩家不会移动出地图边界
+            newX = Math.max(0, Math.min(MAP_WIDTH, newX));
+            newY = Math.max(0, Math.min(MAP_HEIGHT, newY));
+            
+            player.x = newX;
+            player.y = newY;
+            
+            // 简化的相机边界计算逻辑
+            
+            // 计算相机的理想位置（确保玩家在屏幕中央）
+            let idealCameraX = player.x - canvas.width / 2;
+            let idealCameraY = player.y - canvas.height / 2;
+            
+            // 计算相机的最小和最大可能位置
+            let minCameraX = 0;
+            let maxCameraX = MAP_WIDTH - canvas.width;
+            let minCameraY = 0;
+            let maxCameraY = MAP_HEIGHT - canvas.height;
+            
+            // 确保相机不会超出地图边界
+            idealCameraX = Math.max(minCameraX, Math.min(maxCameraX, idealCameraX));
+            idealCameraY = Math.max(minCameraY, Math.min(maxCameraY, idealCameraY));
+            
+            // 应用相机边界限制
+            camera.x = idealCameraX;
+            camera.y = idealCameraY;
+        }
+
+        setInterval(spawnMonster, 800);
+        setInterval(spawnHealthPack, 30000);
+
+        gameLoop();
+    </script>
+</body>
+</html>
